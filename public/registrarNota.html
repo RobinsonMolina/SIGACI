@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registrar Notas</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .nota-input { max-width: 100px; }
+    .observaciones-input { min-width: 200px; }
+    .table-hover tbody tr:hover { background-color: #f8f9fa; }
+    .badge-aprobado { background-color: #28a745; }
+    .badge-reprobado { background-color: #dc3545; }
+    .badge-pendiente { background-color: #6c757d; }
+    .estadisticas-card { border-left: 4px solid #007bff; }
+  </style>
+</head>
+<body class="bg-light">
+  <!-- Header -->
+  <nav class="navbar navbar-expand-lg" style="background: linear-gradient(135deg, #6c757d, #495057);">
+    <div class="container">
+      <a class="navbar-brand text-white fw-bold fs-3" href="#">
+        <i class="fas fa-clipboard-check me-2"></i>SIGACI - Notas
+      </a>
+      <div class="ms-auto">
+        <a class="nav-link text-white" href="dashboard.html">
+          <i class="fas fa-home me-1"></i>Página Principal
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid mt-4">
+    <div class="row">
+      <div class="col-12">
+        <!-- Título y descripción -->
+        <div class="text-center mb-4">
+          <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" 
+               style="width: 80px; height: 80px; background: linear-gradient(135deg, #6c757d, #495057);">
+            <i class="fas fa-clipboard-check text-white fs-1"></i>
+          </div>
+          <h1 class="display-5 fw-bold text-dark mb-2">Gestión de Notas por Asignatura</h1>
+          <p class="lead text-muted">Registra y actualiza las calificaciones de los estudiantes organizados por asignatura</p>
+        </div>
+
+        <!-- Selector de asignatura -->
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header text-white" style="background: linear-gradient(135deg, #6c757d, #495057);">
+            <h5 class="mb-0">
+              <i class="bi bi-book me-2"></i>Seleccionar Asignatura
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-8">
+                <label for="asignaturaSelect" class="form-label fw-semibold">Asignatura:</label>
+                <select id="asignaturaSelect" class="form-select">
+                  <option value="">-- Selecciona una asignatura --</option>
+                </select>
+              </div>
+              <div class="col-md-4 d-flex align-items-end">
+                <button id="btnRecargar" class="btn text-white shadow-sm" 
+                        style="background: linear-gradient(135deg, #6c757d, #495057); border: none;"
+                        onclick="cargarAsignaturas()">
+                  <i class="bi bi-arrow-clockwise me-1"></i>Recargar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Información de la asignatura y estadísticas -->
+        <div id="infoAsignatura" class="d-none">
+          <div class="row mb-4">
+            <div class="col-md-8">
+              <div class="card border-0 shadow-sm" style="border-left: 4px solid #6c757d !important;">
+                <div class="card-body">
+                  <h6 class="card-title fw-bold" id="nombreAsignatura"></h6>
+                  <p class="card-text">
+                    <strong>Semestre:</strong> <span id="semestreAsignatura"></span> | 
+                    <strong>Créditos:</strong> <span id="creditosAsignatura"></span> | 
+                    <strong>Docente:</strong> <span id="docenteAsignatura"></span>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card text-center border-0 shadow-sm">
+                <div class="card-body">
+                  <h5 class="card-title fw-bold" style="color: #6c757d;" id="totalEstudiantes">0</h5>
+                  <p class="card-text text-muted">Estudiantes Inscritos</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Estadísticas detalladas -->
+          <div class="row mb-4">
+            <div class="col-md-3">
+              <div class="card text-center border-0 shadow-sm" style="border-top: 3px solid #28a745;">
+                <div class="card-body">
+                  <h6 class="text-success fw-bold" id="estudiantesAprobados">0</h6>
+                  <small class="text-muted">Aprobados</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card text-center border-0 shadow-sm" style="border-top: 3px solid #dc3545;">
+                <div class="card-body">
+                  <h6 class="text-danger fw-bold" id="estudiantesReprobados">0</h6>
+                  <small class="text-muted">Reprobados</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card text-center border-0 shadow-sm" style="border-top: 3px solid #ffc107;">
+                <div class="card-body">
+                  <h6 class="text-warning fw-bold" id="estudiantesSinNota">0</h6>
+                  <small class="text-muted">Sin Nota</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card text-center border-0 shadow-sm" style="border-top: 3px solid #17a2b8;">
+                <div class="card-body">
+                  <h6 class="text-info fw-bold" id="promedioAsignatura">0.0</h6>
+                  <small class="text-muted">Promedio</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla de estudiantes -->
+        <div id="tablaContainer" class="d-none">
+          <div class="card border-0 shadow-sm">
+            <div class="card-header text-white d-flex justify-content-between align-items-center" 
+                 style="background: linear-gradient(135deg, #6c757d, #495057);">
+              <h5 class="mb-0">
+                <i class="bi bi-people me-2"></i>Estudiantes y Notas
+              </h5>
+              <button id="btnGuardarTodo" class="btn btn-success shadow-sm" onclick="guardarTodasLasNotas()">
+                <i class="bi bi-save me-1"></i>Guardar Todas las Notas
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                  <thead style="background-color: #f8f9fa;">
+                    <tr>
+                      <th class="fw-bold" style="color: #495057;">
+                        <i class="fas fa-user me-1"></i>Estudiante
+                      </th>
+                      <th class="fw-bold" style="color: #495057;">
+                        <i class="fas fa-id-card me-1"></i>Documento
+                      </th>
+                      <th class="fw-bold" style="color: #495057;">
+                        <i class="fas fa-layer-group me-1"></i>Semestre
+                      </th>
+                      <th class="fw-bold" style="color: #495057;">
+                        <i class="fas fa-star me-1"></i>Nota Final
+                      </th>
+                      <th class="fw-bold" style="color: #495057;">
+                        <i class="fas fa-flag me-1"></i>Estado
+                      </th>
+                      <th class="fw-bold" style="color: #495057;">
+                        <i class="fas fa-comment me-1"></i>Observaciones
+                      </th>
+                      <th class="fw-bold text-center" style="color: #495057;">
+                        <i class="fas fa-cogs me-1"></i>Acciones
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="tablaEstudiantes"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación -->
+  <div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header text-white" style="background: linear-gradient(135deg, #6c757d, #495057);">
+          <h5 class="modal-title">
+            <i class="fas fa-question-circle me-2"></i>Confirmar Acción
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="confirmModalBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-1"></i>Cancelar
+          </button>
+          <button type="button" class="btn text-white" 
+                  style="background: linear-gradient(135deg, #6c757d, #495057); border: none;"
+                  id="confirmModalBtn">
+            <i class="fas fa-check me-1"></i>Confirmar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const asignaturaSelect = document.getElementById('asignaturaSelect');
+    const tablaEstudiantes = document.getElementById('tablaEstudiantes');
+    const tablaContainer = document.getElementById('tablaContainer');
+    const infoAsignatura = document.getElementById('infoAsignatura');
+    
+    let estudiantesData = [];
+    let asignaturaActual = null;
+
+    // Cargar asignaturas al inicio
+    document.addEventListener('DOMContentLoaded', cargarAsignaturas);
+
+    function cargarAsignaturas() {
+      fetch('/api/notas/asignaturas')
+        .then(res => res.json())
+        .then(asignaturas => {
+          asignaturaSelect.innerHTML = '<option value="">-- Selecciona una asignatura --</option>';
+          asignaturas.forEach(asignatura => {
+            const option = document.createElement('option');
+            option.value = asignatura.id;
+            option.textContent = `${asignatura.nombre} - Semestre ${asignatura.semestre} (${asignatura.estudiantesInscritos} estudiantes)`;
+            asignaturaSelect.appendChild(option);
+          });
+        })
+        .catch(err => {
+          console.error('Error al cargar asignaturas:', err);
+          mostrarAlerta('Error al cargar las asignaturas', 'danger');
+        });
+    }
+
+    // Cuando se selecciona una asignatura
+    asignaturaSelect.addEventListener('change', () => {
+      const asignaturaId = asignaturaSelect.value;
+      
+      if (!asignaturaId) {
+        ocultarTabla();
+        return;
+      }
+
+      cargarEstudiantesAsignatura(asignaturaId);
+    });
+
+    function cargarEstudiantesAsignatura(asignaturaId) {
+      fetch(`/api/notas/asignatura/${asignaturaId}/estudiantes`)
+        .then(res => res.json())
+        .then(data => {
+          asignaturaActual = data.asignatura;
+          estudiantesData = data.estudiantes;
+          
+          // Mostrar información de la asignatura
+          mostrarInfoAsignatura(data.asignatura, data.estadisticas);
+          
+          // Mostrar estudiantes
+          mostrarEstudiantes(data.estudiantes);
+          
+          tablaContainer.classList.remove('d-none');
+        })
+        .catch(err => {
+          console.error('Error al cargar estudiantes:', err);
+          mostrarAlerta('Error al cargar los estudiantes de la asignatura', 'danger');
+        });
+    }
+
+    function mostrarInfoAsignatura(asignatura, estadisticas) {
+      document.getElementById('nombreAsignatura').textContent = asignatura.nombre;
+      document.getElementById('semestreAsignatura').textContent = asignatura.semestre;
+      document.getElementById('creditosAsignatura').textContent = asignatura.creditos;
+      document.getElementById('docenteAsignatura').textContent = asignatura.docente || 'No asignado';
+      
+      document.getElementById('totalEstudiantes').textContent = estadisticas.totalEstudiantes;
+      document.getElementById('estudiantesAprobados').textContent = estadisticas.estudiantesAprobados;
+      document.getElementById('estudiantesReprobados').textContent = estadisticas.estudiantesReprobados;
+      document.getElementById('estudiantesSinNota').textContent = estadisticas.estudiantesSinNota;
+      document.getElementById('promedioAsignatura').textContent = estadisticas.promedioAsignatura;
+      
+      infoAsignatura.classList.remove('d-none');
+    }
+
+    function mostrarEstudiantes(estudiantes) {
+      tablaEstudiantes.innerHTML = '';
+      
+      if (estudiantes.length === 0) {
+        tablaEstudiantes.innerHTML = '<tr><td colspan="7" class="text-center py-4"><i class="fas fa-user-slash text-muted me-2"></i>No hay estudiantes inscritos en esta asignatura.</td></tr>';
+        return;
+      }
+
+      estudiantes.forEach(estudiante => {
+        const row = document.createElement('tr');
+        const estadoBadge = getEstadoBadge(estudiante);
+        row.className = 'align-middle';
+        row.style.transition = 'all 0.2s ease';
+        
+        row.innerHTML = `
+          <td class="py-3">
+            <div class="d-flex align-items-center">
+              <div class="d-inline-flex align-items-center justify-content-center rounded-circle me-2" 
+                   style="width: 32px; height: 32px; background: linear-gradient(135deg, #6c757d, #495057); font-size: 12px;">
+                <span class="text-white fw-bold">${(estudiante.estudianteNombre || '').charAt(0).toUpperCase()}</span>
+              </div>
+              <strong>${estudiante.estudianteNombre}</strong>
+            </div>
+          </td>
+          <td class="py-3">
+            <span class="badge bg-light text-dark border fw-normal">
+              <i class="fas fa-hashtag me-1"></i>${estudiante.numeroDocumento}
+            </span>
+          </td>
+          <td class="py-3">
+            <span class="badge" style="background-color: #6c757d;">${estudiante.semestre}</span>
+          </td>
+          <td class="py-3">
+            <input type="number" 
+                   step="0.1" 
+                   min="0" 
+                   max="5" 
+                   class="form-control nota-input shadow-sm" 
+                   id="nota-${estudiante.inscripcionId}" 
+                   value="${estudiante.notaFinal || ''}"
+                   placeholder="0.0 - 5.0" />
+          </td>
+          <td class="py-3">${estadoBadge}</td>
+          <td class="py-3">
+            <input type="text" 
+                   class="form-control observaciones-input shadow-sm" 
+                   id="obs-${estudiante.inscripcionId}" 
+                   value="${estudiante.observaciones || ''}"
+                   placeholder="Observaciones..." />
+          </td>
+          <td class="py-3 text-center">
+            <button type="button" 
+                    class="btn btn-sm text-white shadow-sm" 
+                    style="background: linear-gradient(135deg, #6c757d, #495057); border: none;"
+                    onclick="guardarNota('${estudiante.inscripcionId}', ${estudiante.tieneNota})"
+                    title="${estudiante.tieneNota ? 'Actualizar nota' : 'Registrar nota'}">
+              <i class="bi ${estudiante.tieneNota ? 'bi-pencil' : 'bi-plus-circle'} me-1"></i>
+              ${estudiante.tieneNota ? 'Actualizar' : 'Registrar'}
+            </button>
+          </td>
+        `;
+        
+        // Agregar efectos hover
+        row.addEventListener('mouseenter', function() {
+          this.style.backgroundColor = '#f8f9fa';
+          this.style.transform = 'translateX(3px)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+          this.style.backgroundColor = '';
+          this.style.transform = '';
+        });
+        
+        tablaEstudiantes.appendChild(row);
+      });
+    }
+
+    function getEstadoBadge(estudiante) {
+      if (!estudiante.tieneNota) {
+        return '<span class="badge badge-pendiente"><i class="fas fa-clock me-1"></i>Pendiente</span>';
+      }
+      
+      if (estudiante.aprobada) {
+        return '<span class="badge badge-aprobado"><i class="fas fa-check me-1"></i>Aprobado</span>';
+      } else {
+        return '<span class="badge badge-reprobado"><i class="fas fa-times me-1"></i>Reprobado</span>';
+      }
+    }
+
+    function guardarNota(inscripcionId, esActualizacion = false) {
+      const notaInput = document.getElementById(`nota-${inscripcionId}`);
+      const obsInput = document.getElementById(`obs-${inscripcionId}`);
+      
+      const nota = parseFloat(notaInput.value);
+      const observaciones = obsInput.value.trim();
+
+      // Validaciones
+      if (isNaN(nota) || nota < 0 || nota > 5) {
+        mostrarAlerta('La nota debe estar entre 0.0 y 5.0', 'warning');
+        notaInput.focus();
+        return;
+      }
+
+      const datos = {
+        inscripcionId: inscripcionId,
+        notaFinal: nota,
+        observaciones: observaciones
+      };
+
+      let url = '/api/notas';
+      let method = 'POST';
+
+      if (esActualizacion) {
+        // Para actualizar, necesitamos el ID de la nota
+        const estudiante = estudiantesData.find(e => e.inscripcionId === inscripcionId);
+        if (estudiante && estudiante.notaId) {
+          datos.notaId = estudiante.notaId;
+          method = 'PUT';
+        }
+      }
+
+      fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datos)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.mensaje) {
+          mostrarAlerta(data.mensaje, 'success');
+          // Recargar los datos de la asignatura para actualizar estadísticas
+          setTimeout(() => {
+            cargarEstudiantesAsignatura(asignaturaActual.id);
+          }, 1000);
+        } else {
+          throw new Error(data.error || 'Error desconocido');
+        }
+      })
+      .catch(err => {
+        console.error('Error al guardar nota:', err);
+        mostrarAlerta(err.message || 'Error al guardar la nota', 'danger');
+      });
+    }
+
+    function guardarTodasLasNotas() {
+      const notasPendientes = [];
+      
+      estudiantesData.forEach(estudiante => {
+        const notaInput = document.getElementById(`nota-${estudiante.inscripcionId}`);
+        const obsInput = document.getElementById(`obs-${estudiante.inscripcionId}`);
+        
+        const nota = parseFloat(notaInput.value);
+        
+        if (!isNaN(nota) && nota >= 0 && nota <= 5) {
+          notasPendientes.push({
+            inscripcionId: estudiante.inscripcionId,
+            notaFinal: nota,
+            observaciones: obsInput.value.trim(),
+            esActualizacion: estudiante.tieneNota,
+            notaId: estudiante.notaId
+          });
+        }
+      });
+
+      if (notasPendientes.length === 0) {
+        mostrarAlerta('No hay notas válidas para guardar', 'warning');
+        return;
+      }
+
+      // Confirmar acción
+      document.getElementById('confirmModalBody').innerHTML = 
+        `¿Estás seguro de que deseas guardar ${notasPendientes.length} notas?`;
+      
+      const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+      modal.show();
+      
+      document.getElementById('confirmModalBtn').onclick = () => {
+        modal.hide();
+        procesarNotasEnLote(notasPendientes);
+      };
+    }
+
+    async function procesarNotasEnLote(notas) {
+      let procesadas = 0;
+      let errores = 0;
+
+      for (const nota of notas) {
+        try {
+          const datos = {
+            inscripcionId: nota.inscripcionId,
+            notaFinal: nota.notaFinal,
+            observaciones: nota.observaciones
+          };
+
+          let url = '/api/notas';
+          let method = 'POST';
+
+          if (nota.esActualizacion && nota.notaId) {
+            datos.notaId = nota.notaId;
+            method = 'PUT';
+          }
+
+          const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+          });
+
+          if (response.ok) {
+            procesadas++;
+          } else {
+            errores++;
+          }
+        } catch (error) {
+          errores++;
+        }
+      }
+
+      mostrarAlerta(
+        `Proceso completado: ${procesadas} notas guardadas, ${errores} errores`, 
+        errores > 0 ? 'warning' : 'success'
+      );
+
+      // Recargar datos
+      cargarEstudiantesAsignatura(asignaturaActual.id);
+    }
+
+    function ocultarTabla() {
+      tablaContainer.classList.add('d-none');
+      infoAsignatura.classList.add('d-none');
+      estudiantesData = [];
+      asignaturaActual = null;
+    }
+
+    function mostrarAlerta(mensaje, tipo) {
+      const alertaDiv = document.createElement('div');
+      alertaDiv.className = `alert alert-${tipo} alert-dismissible fade show position-fixed`;
+      alertaDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+      alertaDiv.innerHTML = `
+        <i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+        ${mensaje}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      
+      document.body.appendChild(alertaDiv);
+      
+      // Auto-dismiss después de 5 segundos
+      setTimeout(() => {
+        if (alertaDiv.parentNode) {
+          alertaDiv.remove();
+        }
+      }, 5000);
+    }
+  </script>
+</body>
+</html>

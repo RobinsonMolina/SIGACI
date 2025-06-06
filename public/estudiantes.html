@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGACI - Estudiantes</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <!-- Header -->
+  <nav class="navbar navbar-expand-lg" style="background: linear-gradient(135deg, #f1c40f, #f39c12);">
+    <div class="container">
+      <a class="navbar-brand text-white fw-bold fs-3" href="#">
+        <i class="fas fa-graduation-cap me-2"></i>SIGACI
+      </a>
+      <div class="ms-auto">
+        <a class="nav-link text-white" href="dashboard.html">
+          <i class="fas fa-home me-1"></i>Pagina Principal
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-4">
+    <!-- Título y descripción -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="text-center mb-4">
+          <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" 
+               style="width: 80px; height: 80px; background: linear-gradient(135deg, #f1c40f, #f39c12);">
+            <i class="fas fa-users text-white fs-1"></i>
+          </div>
+          <h1 class="display-5 fw-bold text-dark mb-2">Estudiantes por Semestre</h1>
+          <p class="lead text-muted">Visualiza y gestiona la información de todos los estudiantes organizados por semestre académico</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas rápidas -->
+    <div class="justify-content-center">
+          <div class="row mb-4 justify-content-center" id="estadisticas">
+    <!-- Se llenarán dinámicamente -->
+          </div>
+    </div>
+
+    <!-- Contenedor de estudiantes -->
+    <div class="row">
+      <div class="col-12">
+        <div id="estudiantesPorSemestre">
+          <!-- Indicador de carga -->
+          <div class="text-center py-5">
+            <div class="spinner-border" style="color: #f39c12;" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2 text-muted">Cargando estudiantes...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    async function cargarEstudiantes() {
+      try {
+        const response = await fetch('/api/estudiantes/porSemestre');
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error('Error en la respuesta del servidor');
+        }
+
+        mostrarEstadisticas(data);
+        mostrarEstudiantesPorSemestre(data);
+        
+      } catch (error) {
+        console.error('Error al cargar los estudiantes:', error);
+        mostrarError();
+      }
+    }
+
+    function mostrarEstadisticas(data) {
+      const contenedorEstadisticas = document.getElementById('estadisticas');
+      const semestres = Object.keys(data);
+      const totalEstudiantes = semestres.reduce((total, semestre) => total + data[semestre].length, 0);
+      
+contenedorEstadisticas.innerHTML = `
+  <div class="col-md-4 col-sm-6 mb-4 d-flex justify-content-center">
+    <div class="card border-0 shadow-sm" style="width: 100%; max-width: 300px; height: 200px;">
+      <div class="card-body text-center">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" 
+             style="width: 70px; height: 70px; background: linear-gradient(135deg, #3498db, #2980b9);">
+          <i class="fas fa-users text-white fa-2x"></i>
+        </div>
+        <h3 class="fw-bold text-primary mb-0">${totalEstudiantes}</h3>
+        <p class="text-muted mb-0">Total Estudiantes</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4 col-sm-6 mb-4 d-flex justify-content-center">
+    <div class="card border-0 shadow-sm" style="width: 100%; max-width: 300px; height: 200px;">
+      <div class="card-body text-center">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" 
+             style="width: 70px; height: 70px; background: linear-gradient(135deg, #f39c12, #e67e22);">
+          <i class="fas fa-layer-group text-white fa-2x"></i>
+        </div>
+        <h3 class="fw-bold mb-0" style="color: #f39c12;">${semestres.length}</h3>
+        <p class="text-muted mb-0">Semestres Académicos</p>
+      </div>
+    </div>
+  </div>
+`;
+
+    }
+
+    function mostrarEstudiantesPorSemestre(data) {
+      const contenedor = document.getElementById('estudiantesPorSemestre');
+      contenedor.innerHTML = '';
+
+      if (Object.keys(data).length === 0) {
+        mostrarVacio();
+        return;
+      }
+
+      // Extrae las claves (semestres) y ordénalas numéricamente
+      const semestres = Object.keys(data).sort((a, b) => {
+        const numA = parseInt(a.split(' ')[1]); // Extrae el número del semestre
+        const numB = parseInt(b.split(' ')[1]);
+        return numA - numB;
+      });
+
+      // Itera sobre los semestres ordenados
+      semestres.forEach((semestre, index) => {
+        const semestreCard = document.createElement('div');
+        semestreCard.className = 'mb-4';
+        
+        const estudiantesSemestre = data[semestre];
+        const semestreNum = semestre.split(' ')[1];
+        
+        semestreCard.innerHTML = `
+          <div class="card border-0 shadow-sm">
+            <div class="card-header text-white d-flex justify-content-between align-items-center" 
+                 style="background: linear-gradient(135deg, #f39c12, #e67e22);">
+              <div class="d-flex align-items-center">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle me-3" 
+                     style="width: 40px; height: 40px; background: rgba(255,255,255,0.2);">
+                  <span class="text-white fw-bold">${semestreNum}</span>
+                </div>
+                <div>
+                  <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-bookmark me-2"></i>${semestre}
+                  </h5>
+                  <small class="opacity-75">${estudiantesSemestre.length} estudiante${estudiantesSemestre.length !== 1 ? 's' : ''} registrado${estudiantesSemestre.length !== 1 ? 's' : ''}</small>
+                </div>
+              </div>
+              <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" 
+                      data-bs-target="#collapse${index}" aria-expanded="true">
+                <i class="fas fa-chevron-down"></i>
+              </button>
+            </div>
+            <div class="collapse show" id="collapse${index}">
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-hover mb-0">
+                    <thead style="background-color: #fef9e7;">
+                      <tr>
+                        <th class="fw-bold px-4 py-3" style="color: #f39c12; border-bottom: 2px solid #f39c12;">
+                          <i class="fas fa-user me-1"></i>Nombre
+                        </th>
+                        <th class="fw-bold px-4 py-3" style="color: #f39c12; border-bottom: 2px solid #f39c12;">
+                          <i class="fas fa-user-tag me-1"></i>Apellido
+                        </th>
+                        <th class="fw-bold px-4 py-3" style="color: #f39c12; border-bottom: 2px solid #f39c12;">
+                          <i class="fas fa-id-card me-1"></i>Documento
+                        </th>
+                        <th class="fw-bold px-4 py-3" style="color: #f39c12; border-bottom: 2px solid #f39c12;">
+                          <i class="fas fa-mobile-alt me-1"></i>Celular
+                        </th>
+                        <th class="fw-bold px-4 py-3" style="color: #f39c12; border-bottom: 2px solid #f39c12;">
+                          <i class="fas fa-envelope me-1"></i>Correo
+                        </th>
+                        <th class="fw-bold px-4 py-3" style="color: #f39c12; border-bottom: 2px solid #f39c12;">
+                          <i class="fas fa-map-marker-alt me-1"></i>Dirección
+                        </th>
+                        <th class="fw-bold px-4 py-3 text-center" style="color: #f39c12; border-bottom: 2px solid #f39c12;">
+                          <i class="fas fa-cogs me-1"></i>Acciones
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${estudiantesSemestre.map(estudiante => `
+                        <tr class="align-middle" style="cursor: pointer; transition: all 0.2s ease;">
+                          <td class="px-4 py-3">
+                            <div class="d-flex align-items-center">
+                              <div class="d-inline-flex align-items-center justify-content-center rounded-circle me-2" 
+                                   style="width: 32px; height: 32px; background: linear-gradient(135deg, #3498db, #2980b9); font-size: 12px;">
+                                <span class="text-white fw-bold">${(estudiante.nombre || '').charAt(0).toUpperCase()}</span>
+                              </div>
+                              <span class="fw-semibold">${estudiante.nombre || 'N/A'}</span>
+                            </div>
+                          </td>
+                          <td class="px-4 py-3">${estudiante.apellido || 'N/A'}</td>
+                          <td class="px-4 py-3">
+                            <span class="badge bg-light text-dark border fw-normal">
+                              <i class="fas fa-hashtag me-1"></i>${estudiante.numeroDocumento || 'N/A'}
+                            </span>
+                          </td>
+                          <td class="px-4 py-3">
+                            <span class="text-muted">
+                              <i class="fas fa-phone me-1"></i>${estudiante.celular || 'N/A'}
+                            </span>
+                          </td>
+                          <td class="px-4 py-3">
+                            <span class="text-primary">
+                              <i class="fas fa-at me-1"></i>${estudiante.correo || 'N/A'}
+                            </span>
+                          </td>
+                          <td class="px-4 py-3">
+                            <small class="text-muted">${estudiante.direccion || 'N/A'}</small>
+                          </td>
+                          <td class="px-4 py-3 text-center">
+                            <div class="btn-group" role="group">
+                              <button class="btn btn-sm shadow-sm text-white me-2" 
+                                      style="background: linear-gradient(135deg, #f39c12, #e67e22); border: none;"
+                                      onclick="editarEstudiante('${estudiante.id}')"
+                                      title="Editar estudiante">
+                                <i class="fas fa-edit me-1"></i>Editar
+                              </button>
+                              <button class="btn btn-sm btn-danger shadow-sm" 
+                                      onclick="confirmarEliminar('${estudiante.id}', '${estudiante.nombre}', '${estudiante.apellido}')"
+                                      title="Eliminar estudiante">
+                                <i class="fas fa-trash me-1"></i>Eliminar
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        contenedor.appendChild(semestreCard);
+      });
+    }
+
+    function mostrarVacio() {
+      const contenedor = document.getElementById('estudiantesPorSemestre');
+      contenedor.innerHTML = `
+        <div class="text-center py-5">
+          <div class="mb-3">
+            <i class="fas fa-user-slash fs-1" style="color: #95a5a6;"></i>
+          </div>
+          <h5 class="text-muted">No hay estudiantes registrados</h5>
+          <p class="text-muted">Los estudiantes aparecerán aquí una vez que sean registrados en el sistema</p>
+        </div>
+      `;
+    }
+
+    function mostrarError() {
+      const contenedor = document.getElementById('estudiantesPorSemestre');
+      contenedor.innerHTML = `
+        <div class="text-center py-5">
+          <div class="mb-3">
+            <i class="fas fa-exclamation-triangle fs-1" style="color: #e74c3c;"></i>
+          </div>
+          <h5 class="text-danger">Error al cargar los estudiantes</h5>
+          <p class="text-muted">Hubo un problema al conectar con el servidor</p>
+          <button class="btn text-white mt-3" 
+                  style="background: linear-gradient(135deg, #f1c40f, #f39c12); border: none;"
+                  onclick="cargarEstudiantes()">
+            <i class="fas fa-redo me-1"></i>Reintentar
+          </button>
+        </div>
+      `;
+    }
+
+    // Función para editar estudiante
+    function editarEstudiante(estudianteId) {
+      // Redirigir a la página de edición del estudiante
+      window.location.href = `editarEstudiante.html?id=${estudianteId}`;
+    }
+
+    // Agregar efectos hover con JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+      // Cargar estudiantes al iniciar
+      cargarEstudiantes();
+
+      // Agregar efectos hover a las filas de la tabla
+      setTimeout(() => {
+        const filas = document.querySelectorAll('tbody tr');
+        filas.forEach(fila => {
+          fila.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#fff3cd';
+            this.style.transform = 'translateX(5px)';
+          });
+          
+          fila.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+            this.style.transform = '';
+          });
+        });
+      }, 1000);
+    });
+    // Función para confirmar eliminación
+    function confirmarEliminar(estudianteId, nombre, apellido) {
+      const nombreCompleto = `${nombre} ${apellido}`;
+      
+      if (confirm(`¿Estás seguro de que deseas eliminar al estudiante ${nombreCompleto}?\n\nEsta acción eliminará:\n- Todos sus datos personales\n- Sus inscripciones a asignaturas\n- Todas sus notas\n\nEsta acción NO se puede deshacer.`)) {
+        eliminarEstudiante(estudianteId, nombreCompleto);
+      }
+    }
+
+    // Función para eliminar estudiante
+    async function eliminarEstudiante(estudianteId, nombreCompleto) {
+      try {
+        // Mostrar indicador de carga
+        const btnEliminar = event.target;
+        const textoOriginal = btnEliminar.innerHTML;
+        btnEliminar.disabled = true;
+        btnEliminar.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Eliminando...';
+        
+        const response = await fetch(`/api/estudiantes/${estudianteId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          alert(`Estudiante ${nombreCompleto} eliminado correctamente.\n\nDetalles:\n- Asignaturas afectadas: ${data.asignaturasAfectadas}\n- Notas eliminadas: ${data.notasEliminadas}`);
+          
+          // Recargar la lista de estudiantes
+          cargarEstudiantes();
+        } else {
+          throw new Error(data.error || 'Error al eliminar estudiante');
+        }
+        
+      } catch (error) {
+        console.error('Error al eliminar estudiante:', error);
+        alert(`Error al eliminar el estudiante: ${error.message}`);
+        
+        // Restaurar el botón en caso de error
+        if (event.target) {
+          event.target.disabled = false;
+          event.target.innerHTML = textoOriginal;
+        }
+      }
+    }
+  </script>
+</body>
+</html>

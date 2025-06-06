@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Promedios de Estudiantes - SIGACI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .promedio-alto { color: #198754; font-weight: bold; }
+    .promedio-medio { color: #ffc107; font-weight: bold; }
+    .promedio-bajo { color: #dc3545; font-weight: bold; }
+    .badge-creditos {
+      padding: 4px 12px;
+      border-radius: 15px;
+      font-size: 0.85em;
+      font-weight: 500;
+    }
+    .creditos-alto { background-color: #d1e7dd; color: #0f5132; }
+    .creditos-medio { background-color: #fff3cd; color: #856404; }
+    .creditos-bajo { background-color: #f8d7da; color: #721c24; }
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .student-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 0.9em;
+    }
+    .alert-empty {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: #6c757d;
+    }
+    .promedio-card {
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      border-left: 4px solid #007bff;
+    }
+    .promedio-excelente { border-left-color: #198754; }
+    .promedio-bueno { border-left-color: #ffc107; }
+    .promedio-regular { border-left-color: #dc3545; }
+  </style>
+</head>
+<body class="bg-light">
+
+  <!-- Header -->
+  <nav class="navbar navbar-expand-lg" style="background: linear-gradient(135deg, #6c757d, #495057);">
+    <div class="container">
+      <a class="navbar-brand text-white fw-bold fs-3" href="#">
+        <i class="fas fa-graduation-cap me-2"></i>SIGACI
+      </a>
+      <div class="ms-auto">
+        <a class="nav-link text-white" href="dashboard.html">
+          <i class="fas fa-home me-1"></i>Página Principal
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="text-dark mb-1">
+              <i class="fas fa-trophy text-primary me-2"></i>
+              Promedios de Estudiantes
+            </h2>
+            <p class="text-muted mb-0">Promedio ponderado y acumulado por estudiante</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <select class="form-select" id="filtroSemestre" onchange="aplicarFiltros()">
+          <option value="">Todos los semestres</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <select class="form-select" id="filtroPromedioTipo" onchange="aplicarFiltros()">
+          <option value="">Todos los estudiantes</option>
+          <option value="conAcumulado">Con promedio acumulado (≥15 créditos)</option>
+          <option value="sinAcumulado">Sin promedio acumulado (<15 créditos)</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <div class="input-group">
+          <span class="input-group-text"><i class="fas fa-search"></i></span>
+          <input type="text" class="form-control" id="buscarEstudiante" 
+                 placeholder="Buscar estudiante..." onkeyup="aplicarFiltros()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas rápidas -->
+    <div class="row mb-4" id="estadisticas">
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center">
+            <div class="d-flex justify-content-center align-items-center mb-2">
+              <i class="fas fa-users text-primary fs-4 me-2"></i>
+              <h3 class="mb-0" id="totalEstudiantes">
+                <div class="loading-spinner"></div>
+              </h3>
+            </div>
+            <p class="text-muted mb-0">Total Estudiantes</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center">
+            <div class="d-flex justify-content-center align-items-center mb-2">
+              <i class="fas fa-medal text-success fs-4 me-2"></i>
+              <h3 class="mb-0" id="estudiantesExcelente">
+                <div class="loading-spinner"></div>
+              </h3>
+            </div>
+            <p class="text-muted mb-0">Promedio ≥ 4.0</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center">
+            <div class="d-flex justify-content-center align-items-center mb-2">
+              <i class="fas fa-award text-warning fs-4 me-2"></i>
+              <h3 class="mb-0" id="estudiantesBueno">
+                <div class="loading-spinner"></div>
+              </h3>
+            </div>
+            <p class="text-muted mb-0">Promedio 3.0 - 3.9</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center">
+            <div class="d-flex justify-content-center align-items-center mb-2">
+              <i class="fas fa-graduation-cap text-info fs-4 me-2"></i>
+              <h3 class="mb-0" id="estudiantesAcumulado">
+                <div class="loading-spinner"></div>
+              </h3>
+            </div>
+            <p class="text-muted mb-0">Con Prom. Acumulado</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de Promedios -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h5 class="mb-0">
+          <i class="fas fa-chart-line me-2"></i>
+          Registro de Promedios Académicos
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="px-4 py-3">
+                  <i class="fas fa-user me-2"></i>Estudiante
+                </th>
+                <th class="px-4 py-3">
+                  <i class="fas fa-layer-group me-2"></i>Semestre
+                </th>
+                <th class="px-4 py-3">
+                  <i class="fas fa-coins me-2"></i>Créditos
+                </th>
+                <th class="px-4 py-3">
+                  <i class="fas fa-calculator me-2"></i>Prom. Ponderado
+                </th>
+                <th class="px-4 py-3">
+                  <i class="fas fa-chart-bar me-2"></i>Prom. Acumulado
+                </th>
+                <th class="px-4 py-3">
+                  <i class="fas fa-book me-2"></i>Asignaturas
+                </th>
+                <th class="px-4 py-3">
+                  <i class="fas fa-cog me-2"></i>Acciones
+                </th>
+              </tr>
+            </thead>
+            <tbody id="tablaPromedios">
+              <tr>
+                <td colspan="7" class="text-center py-5">
+                  <div class="loading-spinner me-2"></div>
+                  Cargando datos...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer bg-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <small class="text-muted" id="infoRegistros">Cargando...</small>
+          <nav>
+            <ul class="pagination pagination-sm mb-0" id="paginacion">
+              <!-- Paginación dinámica -->
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Modal para Ver Detalle del Estudiante -->
+  <div class="modal fade" id="modalDetalle" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalDetalleTitulo">Detalle Académico</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row" id="detalleContenido">
+            <!-- Contenido dinámico -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Variables globales
+    let datosPromedios = [];
+    let datosFiltrados = [];
+    let paginaActual = 1;
+    const registrosPorPagina = 10;
+
+    // Función para obtener iniciales del nombre
+    function obtenerIniciales(nombre) {
+      return nombre.split(' ')
+        .map(palabra => palabra.charAt(0).toUpperCase())
+        .slice(0, 2)
+        .join('');
+    }
+
+    // Función para obtener color del avatar
+    function obtenerColorAvatar(index) {
+      const colores = ['#007bff', '#28a745', '#17a2b8', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#20c997'];
+      return colores[index % colores.length];
+    }
+
+    // Función para obtener clase CSS de promedio
+    function obtenerClasePromedio(promedio) {
+      if (promedio >= 4.0) return 'promedio-alto';
+      if (promedio >= 3.0) return 'promedio-medio';
+      return 'promedio-bajo';
+    }
+
+    // Función para obtener clase CSS de créditos
+    function obtenerClaseCreditos(creditos) {
+      if (creditos >= 30) return 'creditos-alto';
+      if (creditos >= 15) return 'creditos-medio';
+      return 'creditos-bajo';
+    }
+
+    // Función para cargar promedios de estudiantes
+    async function cargarPromedios() {
+      try {
+        const response = await fetch(`/api/notas/promedios`);
+        if (!response.ok) throw new Error('Error al cargar promedios');
+        
+        datosPromedios = await response.json();
+        datosFiltrados = [...datosPromedios];
+        
+        actualizarEstadisticas();
+        cargarFiltros();
+        mostrarPromedios();
+        
+      } catch (error) {
+        console.error('Error:', error);
+        mostrarError('No se pudieron cargar los promedios. Verifique la conexión con el servidor.');
+      }
+    }
+
+    // Función para cargar opciones de filtros
+    function cargarFiltros() {
+      // Cargar semestres únicos
+      const semestres = [...new Set(datosPromedios.map(est => est.semestre))]
+        .sort((a, b) => a - b);
+      
+      const filtroSemestre = document.getElementById('filtroSemestre');
+      filtroSemestre.innerHTML = '<option value="">Todos los semestres</option>';
+      semestres.forEach(semestre => {
+        filtroSemestre.innerHTML += `<option value="${semestre}">Semestre ${semestre}</option>`;
+      });
+    }
+
+    // Función para aplicar filtros
+    function aplicarFiltros() {
+      const filtroSemestre = document.getElementById('filtroSemestre').value;
+      const filtroPromedioTipo = document.getElementById('filtroPromedioTipo').value;
+      const busqueda = document.getElementById('buscarEstudiante').value.toLowerCase();
+
+      datosFiltrados = datosPromedios.filter(estudiante => {
+        let coincide = true;
+
+        if (filtroSemestre) {
+          coincide = coincide && estudiante.semestre.toString() === filtroSemestre;
+        }
+
+        if (filtroPromedioTipo === 'conAcumulado') {
+          coincide = coincide && estudiante.promedioAcumulado > 0;
+        } else if (filtroPromedioTipo === 'sinAcumulado') {
+          coincide = coincide && estudiante.promedioAcumulado === 0;
+        }
+
+        if (busqueda) {
+          coincide = coincide && estudiante.nombre.toLowerCase().includes(busqueda);
+        }
+
+        return coincide;
+      });
+
+      paginaActual = 1;
+      actualizarEstadisticas();
+      mostrarPromedios();
+    }
+
+    // Función para actualizar estadísticas
+    function actualizarEstadisticas() {
+      const total = datosFiltrados.length;
+      const excelentes = datosFiltrados.filter(est => est.promedioPonderado >= 4.0).length;
+      const buenos = datosFiltrados.filter(est => est.promedioPonderado >= 3.0 && est.promedioPonderado < 4.0).length;
+      const conAcumulado = datosFiltrados.filter(est => est.promedioAcumulado > 0).length;
+
+      document.getElementById('totalEstudiantes').textContent = total;
+      document.getElementById('estudiantesExcelente').textContent = excelentes;
+      document.getElementById('estudiantesBueno').textContent = buenos;
+      document.getElementById('estudiantesAcumulado').textContent = conAcumulado;
+    }
+
+    // Función para mostrar promedios en la tabla
+    function mostrarPromedios() {
+      const tbody = document.getElementById('tablaPromedios');
+      
+      if (datosFiltrados.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="alert-empty">
+              <i class="fas fa-inbox fa-3x mb-3 text-muted"></i>
+              <br>No se encontraron estudiantes con notas registradas
+            </td>
+          </tr>
+        `;
+        document.getElementById('infoRegistros').textContent = 'No hay registros para mostrar';
+        document.getElementById('paginacion').innerHTML = '';
+        return;
+      }
+
+      const inicio = (paginaActual - 1) * registrosPorPagina;
+      const fin = Math.min(inicio + registrosPorPagina, datosFiltrados.length);
+      const estudiantesAPaginar = datosFiltrados.slice(inicio, fin);
+
+      tbody.innerHTML = estudiantesAPaginar.map((estudiante, index) => {
+        const iniciales = obtenerIniciales(estudiante.nombre);
+        const colorAvatar = obtenerColorAvatar(inicio + index);
+        const clasePonderado = obtenerClasePromedio(estudiante.promedioPonderado);
+        const claseAcumulado = estudiante.promedioAcumulado > 0 ? obtenerClasePromedio(estudiante.promedioAcumulado) : 'text-muted';
+        const claseCreditos = obtenerClaseCreditos(estudiante.totalCreditos);
+        
+        return `
+          <tr>
+            <td class="px-4 py-3">
+              <div class="d-flex align-items-center">
+                <div class="student-avatar me-3" style="background-color: ${colorAvatar}">
+                  <span>${iniciales}</span>
+                </div>
+                <div>
+                  <div class="fw-medium">${estudiante.nombre}</div>
+                  <small class="text-muted">Doc: ${estudiante.numeroDocumento}</small>
+                </div>
+              </div>
+            </td>
+            <td class="px-4 py-3">
+              <span class="badge bg-primary">${estudiante.semestre}</span>
+            </td>
+            <td class="px-4 py-3">
+              <span class="badge-creditos ${claseCreditos}">${estudiante.totalCreditos}</span>
+            </td>
+            <td class="px-4 py-3">
+              <span class="fs-5 fw-bold ${clasePonderado}">${estudiante.promedioPonderado.toFixed(2)}</span>
+            </td>
+            <td class="px-4 py-3">
+              <span class="fs-5 fw-bold ${claseAcumulado}">
+                ${estudiante.promedioAcumulado > 0 ? estudiante.promedioAcumulado.toFixed(2) : 'N/A'}
+              </span>
+            </td>
+            <td class="px-4 py-3">
+              <small class="text-muted">${estudiante.totalAsignaturas} materias</small>
+            </td>
+            <td class="px-4 py-3">
+              <button class="btn btn-sm btn-outline-primary" onclick="verDetalle('${estudiante.id}')">
+                <i class="fas fa-eye"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Actualizar información de registros
+      document.getElementById('infoRegistros').textContent = 
+        `Mostrando ${inicio + 1} a ${fin} de ${datosFiltrados.length} registros`;
+
+      // Generar paginación
+      generarPaginacion();
+    }
+
+    // Función para generar paginación
+    function generarPaginacion() {
+      const totalPaginas = Math.ceil(datosFiltrados.length / registrosPorPagina);
+      const paginacion = document.getElementById('paginacion');
+
+      if (totalPaginas <= 1) {
+        paginacion.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+
+      // Botón anterior
+      html += `
+        <li class="page-item ${paginaActual === 1 ? 'disabled' : ''}">
+          <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual - 1})">Anterior</a>
+        </li>
+      `;
+
+      // Páginas
+      for (let i = 1; i <= Math.min(totalPaginas, 5); i++) {
+        html += `
+          <li class="page-item ${i === paginaActual ? 'active' : ''}">
+            <a class="page-link" href="#" onclick="cambiarPagina(${i})">${i}</a>
+          </li>
+        `;
+      }
+
+      // Botón siguiente
+      html += `
+        <li class="page-item ${paginaActual === totalPaginas ? 'disabled' : ''}">
+          <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual + 1})">Siguiente</a>
+        </li>
+      `;
+
+      paginacion.innerHTML = html;
+    }
+
+    // Función para cambiar página
+    function cambiarPagina(nuevaPagina) {
+      const totalPaginas = Math.ceil(datosFiltrados.length / registrosPorPagina);
+      if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+        paginaActual = nuevaPagina;
+        mostrarPromedios();
+      }
+    }
+
+    // Función para ver detalle del estudiante
+    async function verDetalle(estudianteId) {
+      try {
+        const response = await fetch(`/api/notas/estudiante/${estudianteId}`);
+        if (!response.ok) throw new Error('Error al cargar detalle');
+        
+        const datos = await response.json();
+        const estudiante = datos.estudiante;
+        const estadisticas = datos.estadisticas;
+        const notas = datos.notas;
+
+        document.getElementById('modalDetalleTitulo').textContent = `Detalle - ${estudiante.nombre}`;
+        
+        const contenido = document.getElementById('detalleContenido');
+        contenido.innerHTML = `
+          <div class="col-12 mb-4">
+            <div class="card promedio-card">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <h6 class="text-muted mb-1">Información General</h6>
+                    <p class="mb-1"><strong>Documento:</strong> ${estudiante.numeroDocumento}</p>
+                    <p class="mb-1"><strong>Semestre:</strong> ${estudiante.semestre}</p>
+                    <p class="mb-0"><strong>Total Notas:</strong> ${estadisticas.totalNotas}</p>
+                  </div>
+                  <div class="col-md-6">
+                    <h6 class="text-muted mb-1">Estadísticas</h6>
+                    <p class="mb-1"><strong>Promedio:</strong> <span class="${obtenerClasePromedio(estadisticas.promedio)}">${estadisticas.promedio}</span></p>
+                    <p class="mb-1"><strong>Aprobadas:</strong> ${estadisticas.notasAprobadas}</p>
+                    <p class="mb-0"><strong>Reprobadas:</strong> ${estadisticas.notasReprobadas}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <h6 class="mb-3">Historial de Notas</h6>
+            <div class="table-responsive">
+              <table class="table table-sm table-striped">
+                <thead>
+                  <tr>
+                    <th>Asignatura</th>
+                    <th>Semestre</th>
+                    <th>Créditos</th>
+                    <th>Nota</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${notas.map(nota => `
+                    <tr>
+                      <td>${nota.asignatura ? nota.asignatura.nombre : 'N/A'}</td>
+                      <td>${nota.asignatura ? nota.asignatura.semestre : 'N/A'}</td>
+                      <td>${nota.asignatura ? nota.asignatura.creditos : 'N/A'}</td>
+                      <td><span class="${obtenerClasePromedio(nota.notaFinal)}">${nota.notaFinal.toFixed(1)}</span></td>
+                      <td>
+                        <span class="badge ${nota.aprobada ? 'bg-success' : 'bg-danger'}">
+                          ${nota.aprobada ? 'Aprobada' : 'Reprobada'}
+                        </span>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+        
+        new bootstrap.Modal(document.getElementById('modalDetalle')).show();
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al cargar el detalle del estudiante');
+      }
+    }
+
+    // Función para mostrar errores
+    function mostrarError(mensaje) {
+      const tbody = document.getElementById('tablaPromedios');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="alert-empty text-danger">
+            <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+            <br>${mensaje}
+          </td>
+        </tr>
+      `;
+      
+      // Resetear estadísticas
+      document.getElementById('totalEstudiantes').textContent = '0';
+      document.getElementById('estudiantesExcelente').textContent = '0';
+      document.getElementById('estudiantesBueno').textContent = '0';
+      document.getElementById('estudiantesAcumulado').textContent = '0';
+    }
+
+    // Inicializar aplicación
+    document.addEventListener('DOMContentLoaded', function() {
+      cargarPromedios();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Inscribir Estudiante a Asignatura</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  
+</head>
+<body class="bg-light">
+  <div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">
+              <i class="fas fa-user-plus me-2"></i>Inscribir Estudiante a Asignatura
+            </h3>
+            <a class="nav-link text-white" href="dashboard.html" style="white-space: nowrap;">
+              <i class="fas fa-home me-1"></i>Pagina Principal
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario para inscribir estudiante -->
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0 text-danger">
+              <i class="fas fa-clipboard-list me-2"></i>Formulario de Inscripción
+            </h5>
+          </div>
+          <div class="card-body p-4">
+            <form id="formInscripcion">
+              <div class="row g-4">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">
+                    <i class="fas fa-user-graduate me-2 text-info"></i>Estudiante
+                  </label>
+                  <select class="form-select form-select-lg" id="numeroDocumento" name="numeroDocumento" required>
+                    <option value="">Seleccionar Estudiante</option>
+                  </select>
+                  <div class="form-text">Seleccione el estudiante a inscribir</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">
+                    <i class="fas fa-book me-2 text-success"></i>Asignatura
+                  </label>
+                  <select class="form-select form-select-lg" id="codigoAsignatura" name="codigoAsignatura" required>
+                    <option value="">Seleccionar Asignatura</option>
+                  </select>
+                  <div class="form-text">Seleccione la asignatura para inscribir</div>
+                </div>
+              </div>
+              
+              <div class="row mt-4">
+                <div class="col-12 text-center">
+                  <button class="btn btn-danger btn-lg px-5" type="submit">
+                    <i class="fas fa-plus me-2"></i>Inscribir Estudiante
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let estudiantes = [];
+    let asignaturas = [];
+
+    // Cargar datos al iniciar
+    document.addEventListener('DOMContentLoaded', async () => {
+      await cargarDatos();
+    });
+
+    async function cargarDatos() {
+      try {
+        // Cargar estudiantes
+        const responseEstudiantes = await fetch('/api/estudiantes');
+        estudiantes = await responseEstudiantes.json();
+        llenarSelectEstudiantes('numeroDocumento', estudiantes);
+
+        // Cargar asignaturas
+        const responseAsignaturas = await fetch('/api/asignaturas');
+        asignaturas = await responseAsignaturas.json();
+        llenarSelect('codigoAsignatura', asignaturas, 'id', (asig) => `${asig.nombre} (${asig.numeroCredito} créditos)`);
+
+      } catch (error) {
+        console.error('Error al cargar datos:', error);
+        mostrarAlerta('Error al cargar datos iniciales', 'error');
+      }
+    }
+
+    function llenarSelectEstudiantes(selectId, estudiantes) {
+      const select = document.getElementById(selectId);
+      const optionsToKeep = select.querySelectorAll('option[value=""]');
+      select.innerHTML = '';
+      optionsToKeep.forEach(opt => select.appendChild(opt));
+      
+      estudiantes.forEach(estudiante => {
+        const option = document.createElement('option');
+        option.value = estudiante.numeroDocumento;
+        option.textContent = `${estudiante.nombre} ${estudiante.apellido} (${estudiante.numeroDocumento})`;
+        select.appendChild(option);
+      });
+    }
+
+    function llenarSelect(selectId, datos, valueField, textField) {
+      const select = document.getElementById(selectId);
+      const optionsToKeep = select.querySelectorAll('option[value=""]');
+      select.innerHTML = '';
+      optionsToKeep.forEach(opt => select.appendChild(opt));
+      
+      datos.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item[valueField];
+        option.textContent = typeof textField === 'function' ? textField(item) : item[textField];
+        select.appendChild(option);
+      });
+    }
+
+    // Manejo del formulario de inscripción
+    document.getElementById('formInscripcion').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      
+      // Buscar el ID del estudiante basado en numeroDocumento
+      const numeroDocumento = formData.get('numeroDocumento');
+      const codigoAsignatura = formData.get('codigoAsignatura');
+      
+      const estudiante = estudiantes.find(est => est.numeroDocumento === numeroDocumento);
+      const asignatura = asignaturas.find(asig => asig.id === codigoAsignatura);
+      
+      if (!estudiante) {
+        mostrarAlerta('Estudiante no encontrado', 'error');
+        return;
+      }
+      
+      if (!asignatura) {
+        mostrarAlerta('Asignatura no encontrada', 'error');
+        return;
+      }
+      
+      // Preparar datos con los IDs correctos
+      const data = {
+        estudianteId: estudiante.id,
+        asignaturaId: asignatura.id
+      };
+      
+      // Mostrar loading
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Inscribiendo...';
+      submitBtn.disabled = true;
+      
+      try {
+        const response = await fetch('/api/inscripciones/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+          mostrarAlerta('Estudiante inscrito exitosamente', 'success');
+          document.getElementById('formInscripcion').reset();
+        } else {
+          const error = await response.json();
+          mostrarAlerta('Error: ' + error.error, 'error');
+          if (error.prerequisitosFaltantes) {
+            mostrarAlerta('Prerequisitos faltantes: ' + error.prerequisitosFaltantes.join(', '), 'warning');
+          }
+        }
+      } catch (error) {
+        console.log('Error:', error);
+        console.error('Error:', error);
+        mostrarAlerta('Error al inscribir estudiante', 'error');
+      } finally {
+        // Restaurar botón
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+
+    function mostrarAlerta(mensaje, tipo) {
+      const alertClass = {
+        'success': 'alert-success',
+        'error': 'alert-danger',
+        'warning': 'alert-warning',
+        'info': 'alert-info'
+      }[tipo] || 'alert-info';
+
+      const alertHTML = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+          <strong>${mensaje}</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      `;
+
+      // Insertar alerta al inicio del container
+      const container = document.querySelector('.container');
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = alertHTML;
+      container.insertBefore(tempDiv.firstElementChild, container.firstElementChild);
+
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        const alert = container.querySelector('.alert');
+        if (alert) {
+          alert.remove();
+        }
+      }, 5000);
+    }
+  </script>
+</body>
+</html>

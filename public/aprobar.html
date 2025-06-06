@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Aprobar Asignaturas y Gestión</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <div class="container mt-4">
+<!-- Header -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+        <h3 class="mb-0">
+          <i class="fas fa-check-circle me-2"></i>Gestión de Asignaturas y Aprobaciones
+        </h3>
+        <a class="nav-link text-white" href="dashboard.html" style="white-space: nowrap;">
+          <i class="fas fa-home me-1"></i> Página Principal
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+    <!-- Filtros -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-info text-white">
+            <h5 class="mb-0">
+              <i class="fas fa-filter me-2"></i>Filtros de Búsqueda
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">Estudiante</label>
+                <select class="form-select" id="filtroEstudiante" onchange="aplicarFiltros()">
+                  <option value="">Todos los estudiantes</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Asignatura</label>
+                <select class="form-select" id="filtroAsignatura" onchange="aplicarFiltros()">
+                  <option value="">Todas las asignaturas</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Semestre</label>
+                <select class="form-select" id="filtroSemestre" onchange="aplicarFiltros()">
+                  <option value="">Todos los semestres</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de estudiantes y sus asignaturas -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">
+              <i class="fas fa-users me-2"></i>Estudiantes y sus Asignaturas
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-dark">
+                  <tr>
+                    <th><i class="fas fa-user me-2"></i>Estudiante</th>
+                    <th><i class="fas fa-id-card me-2"></i>Documento</th>
+                    <th><i class="fas fa-book-open me-2"></i>Asignaturas Actuales</th>
+                    <th><i class="fas fa-trophy me-2"></i>Asignaturas Aprobadas</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaEstudiantes">
+                  <!-- Datos cargados dinámicamente -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de navegación -->
+    <div class="row mt-4">
+      <div class="col-12 text-center">
+        <a href="inscripciones.html" class="btn btn-outline-danger">
+          <i class="fas fa-user-plus me-2"></i>Inscribir Estudiantes
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let estudiantes = [];
+    let asignaturas = [];
+    let estudiantesOriginales = [];
+
+    // Cargar datos al iniciar
+    document.addEventListener('DOMContentLoaded', async () => {
+      await cargarDatos();
+      await cargarEstudiantes();
+    });
+
+    async function cargarDatos() {
+      try {
+        // Cargar asignaturas
+        const responseAsignaturas = await fetch('/api/asignaturas');
+        if (!responseAsignaturas.ok) {
+          throw new Error(`Error al cargar asignaturas: ${responseAsignaturas.status}`);
+        }
+        asignaturas = await responseAsignaturas.json();
+        
+        // Llenar filtro de asignaturas
+        llenarSelect('filtroAsignatura', asignaturas, 'id', 'nombre');
+        
+        // Si existe el formulario de aprobación, llenar ese select también
+        const asignaturaAprobar = document.getElementById('asignaturaAprobar');
+        if (asignaturaAprobar) {
+          llenarSelect('asignaturaAprobar', asignaturas, 'id', 'nombre');
+        }
+
+        // Crear filtro de semestres únicos
+        const semestres = [...new Set(asignaturas.map(a => a.semestre))].sort((a, b) => a - b);
+        const filtroSemestre = document.getElementById('filtroSemestre');
+        semestres.forEach(semestre => {
+          const option = document.createElement('option');
+          option.value = semestre;
+          option.textContent = `Semestre ${semestre}`;
+          filtroSemestre.appendChild(option);
+        });
+
+      } catch (error) {
+        console.error('Error al cargar datos:', error);
+        mostrarAlerta('Error al cargar datos iniciales: ' + error.message, 'error');
+      }
+    }
+
+    function llenarSelectEstudiantes(selectId, estudiantes) {
+      const select = document.getElementById(selectId);
+      const optionsToKeep = select.querySelectorAll('option[value=""]');
+      select.innerHTML = '';
+      optionsToKeep.forEach(opt => select.appendChild(opt));
+      
+      estudiantes.forEach(estudiante => {
+        const option = document.createElement('option');
+        option.value = estudiante.numeroDocumento;
+        option.textContent = `${estudiante.nombre} ${estudiante.apellido} (${estudiante.numeroDocumento})`;
+        select.appendChild(option);
+      });
+    }
+
+    function llenarSelect(selectId, datos, valueField, textField) {
+      const select = document.getElementById(selectId);
+      const optionsToKeep = select.querySelectorAll('option[value=""]');
+      select.innerHTML = '';
+      optionsToKeep.forEach(opt => select.appendChild(opt));
+      
+      datos.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item[valueField];
+        option.textContent = typeof textField === 'function' ? textField(item) : item[textField];
+        select.appendChild(option);
+      });
+    }
+
+    async function cargarEstudiantes() {
+      try {
+        console.log('Iniciando carga de estudiantes...');
+        
+        // Cambiar la ruta para usar el nuevo endpoint
+        const response = await fetch('/api/estudiantes/con-nombres-asignaturas');
+        
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const estudiantesData = await response.json();
+        
+        console.log('Datos recibidos:', estudiantesData);
+        console.log('Tipo de datos:', typeof estudiantesData);
+        console.log('Es array:', Array.isArray(estudiantesData));
+        
+        // Verificar si la respuesta es un array
+        if (!Array.isArray(estudiantesData)) {
+          console.error('Los datos recibidos no son un array:', estudiantesData);
+          
+          // Si hay un error en la respuesta del servidor
+          if (estudiantesData.error) {
+            throw new Error(estudiantesData.error);
+          }
+          
+          // Si no es array, intentar usar array vacío
+          console.warn('Usando array vacío como fallback');
+          estudiantesOriginales = [];
+          mostrarEstudiantes([]);
+          return;
+        }
+        
+        estudiantesOriginales = [...estudiantesData];
+        
+        // AQUÍ ESTÁ LA CORRECCIÓN: Llenar el select de estudiantes
+        llenarSelectEstudiantes('filtroEstudiante', estudiantesData);
+        
+        mostrarEstudiantes(estudiantesData);
+        
+        console.log('Estudiantes cargados exitosamente:', estudiantesData.length);
+        
+      } catch (error) {
+        console.error('Error detallado al cargar estudiantes:', error);
+        mostrarAlerta('Error al cargar datos de estudiantes: ' + error.message, 'error');
+        
+        // Fallback: usar la función original si la nueva no funciona
+        try {
+          console.log('Intentando con endpoint original...');
+          const response = await fetch('/api/estudiantes');
+          const estudiantesData = await response.json();
+          
+          if (Array.isArray(estudiantesData)) {
+            estudiantesOriginales = [...estudiantesData];
+            
+            // TAMBIÉN LLENAR AQUÍ EL SELECT EN EL FALLBACK
+            llenarSelectEstudiantes('filtroEstudiante', estudiantesData);
+            
+            mostrarEstudiantes(estudiantesData);
+            console.log('Cargados con endpoint original');
+          }
+        } catch (fallbackError) {
+          console.error('Error en fallback:', fallbackError);
+          mostrarAlerta('Error crítico al cargar estudiantes', 'error');
+        }
+      }
+    }
+
+    function mostrarEstudiantes(estudiantesAMostrar) {
+      const tbody = document.getElementById('tablaEstudiantes');
+      tbody.innerHTML = '';
+
+      if (estudiantesAMostrar.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" class="text-center text-muted py-4">
+              <i class="fas fa-users fa-2x mb-2"></i><br>
+              No se encontraron estudiantes con los filtros aplicados
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      estudiantesAMostrar.forEach(estudiante => {
+        const tr = document.createElement('tr');
+        
+        // Ahora las asignaturas vienen como objetos con id y nombre
+        const asignaturasActuales = (estudiante.asignaturasActuales || [])
+          .map(asignatura => asignatura.nombre || asignatura.id)
+          .join(', ') || 'Ninguna';
+
+        const asignaturasAprobadas = (estudiante.asignaturasAprobadas || [])
+          .map(asignatura => asignatura.nombre || asignatura.id)
+          .join(', ') || 'Ninguna';
+
+        tr.innerHTML = `
+          <td class="fw-bold">${estudiante.nombre} ${estudiante.apellido}</td>
+          <td><span class="badge bg-secondary">${estudiante.numeroDocumento}</span></td>
+          <td><small class="text-primary">${asignaturasActuales}</small></td>
+          <td><small class="text-success">${asignaturasAprobadas}</small></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Manejo del formulario de aprobación (si existe)
+    const formAprobar = document.getElementById('formAprobar');
+    if (formAprobar) {
+      formAprobar.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        
+        // Mostrar loading
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Aprobando...';
+        submitBtn.disabled = true;
+        
+        try {
+          const response = await fetch('/api/asignaturas/aprobar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+          
+          if (response.ok) {
+            mostrarAlerta('Asignatura aprobada exitosamente', 'success');
+            document.getElementById('formAprobar').reset();
+            await cargarEstudiantes();
+          } else {
+            const error = await response.json();
+            mostrarAlerta('Error: ' + error.error, 'error');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          mostrarAlerta('Error al aprobar asignatura', 'error');
+        } finally {
+          // Restaurar botón
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+        }
+      });
+    }
+
+    function aplicarFiltros() {
+      const filtroEstudiante = document.getElementById('filtroEstudiante').value;
+      const filtroAsignatura = document.getElementById('filtroAsignatura').value;
+      const filtroSemestre = document.getElementById('filtroSemestre').value;
+      
+      let estudiantesFiltrados = [...estudiantesOriginales];
+      
+      if (filtroEstudiante) {
+        estudiantesFiltrados = estudiantesFiltrados.filter(est => est.numeroDocumento === filtroEstudiante);
+      }
+
+      if (filtroAsignatura) {
+        estudiantesFiltrados = estudiantesFiltrados.filter(est => {
+          // Revisar tanto las asignaturas actuales como las aprobadas
+          const asignaturasActuales = (est.asignaturasActuales || []).map(a => a.id || a);
+          const asignaturasAprobadas = (est.asignaturasAprobadas || []).map(a => a.id || a);
+          const todasAsignaturas = [...asignaturasActuales, ...asignaturasAprobadas];
+          return todasAsignaturas.includes(filtroAsignatura);
+        });
+      }
+
+      if (filtroSemestre) {
+        estudiantesFiltrados = estudiantesFiltrados.filter(est => {
+          const asignaturasActuales = (est.asignaturasActuales || []).map(a => a.id || a);
+          const asignaturasAprobadas = (est.asignaturasAprobadas || []).map(a => a.id || a);
+          const todasAsignaturas = [...asignaturasActuales, ...asignaturasAprobadas];
+          
+          return todasAsignaturas.some(codigo => {
+            const asignatura = asignaturas.find(a => a.id === codigo);
+            return asignatura && asignatura.semestre == filtroSemestre;
+          });
+        });
+      }
+      
+      mostrarEstudiantes(estudiantesFiltrados);
+    }
+
+    function mostrarAlerta(mensaje, tipo) {
+      const alertClass = {
+        'success': 'alert-success',
+        'error': 'alert-danger',
+        'warning': 'alert-warning',
+        'info': 'alert-info'
+      }[tipo] || 'alert-info';
+
+      const alertHTML = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+          <strong>${mensaje}</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      `;
+
+      // Insertar alerta al inicio del container
+      const container = document.querySelector('.container');
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = alertHTML;
+      container.insertBefore(tempDiv.firstElementChild, container.firstElementChild);
+
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        const alert = container.querySelector('.alert');
+        if (alert) {
+          alert.remove();
+        }
+      }, 5000);
+    }
+  </script>
+</body>
+</html>

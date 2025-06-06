@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGACI - Períodos Académicos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <!-- Header -->
+  <nav class="navbar navbar-expand-lg" style="background: linear-gradient(135deg, #f1c40f, #f39c12);">
+    <div class="container">
+      <a class="navbar-brand text-white fw-bold fs-3" href="#">
+        <i class="fas fa-graduation-cap me-2"></i>SIGACI
+      </a>
+      <div class="ms-auto">
+        <a class="nav-link text-white" href="dashboard.html">
+          <i class="fas fa-home me-1"></i>Pagina Principal
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-4">
+    <!-- Título y descripción -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="text-center mb-4">
+          <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" 
+               style="width: 80px; height: 80px; background: linear-gradient(135deg, #f1c40f, #f39c12);">
+            <i class="fas fa-calendar-alt text-white fs-1"></i>
+          </div>
+          <h1 class="display-5 fw-bold text-dark mb-2">Períodos Académicos</h1>
+          <p class="lead text-muted">Administra y gestiona los períodos académicos del sistema</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón crear nuevo período -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+          <h3 class="text-dark mb-0">
+            <i class="fas fa-list me-2" style="color: #f39c12;"></i>Lista de Períodos
+          </h3>
+          <a href="crearPeriodos.html" class="btn btn-lg shadow-sm" 
+             style="background: linear-gradient(135deg, #f1c40f, #f39c12); border: none; color: white;">
+            <i class="fas fa-plus me-2"></i>Crear Nuevo Período
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenedor de la tabla -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card shadow-sm border-0">
+          <div class="card-header text-white fw-bold" 
+               style="background: linear-gradient(135deg, #f39c12, #e67e22);">
+            <i class="fas fa-table me-2"></i>Períodos Registrados
+          </div>
+          <div class="card-body p-0">
+            <div id="listaPeriodos">
+              <!-- Indicador de carga -->
+              <div class="text-center py-5">
+                <div class="spinner-border" style="color: #f39c12;" role="status">
+                  <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-2 text-muted">Cargando períodos académicos...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+ 
+  </div>
+
+  <!-- Modal de confirmación -->
+  <div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header text-white" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
+          <h5 class="modal-title">
+            <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Activación
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">¿Está seguro de que desea activar este período académico?</p>
+          <small class="text-muted">Esta acción desactivará todos los otros períodos.</small>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn text-white" 
+                  style="background: linear-gradient(135deg, #f1c40f, #f39c12); border: none;"
+                  id="confirmActivar">
+            <i class="fas fa-check me-1"></i>Activar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let periodoAActivar = null;
+    const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+
+    async function cargarPeriodos() {
+      try {
+        const res = await fetch('/api/periodos');
+        const periodos = await res.json();
+        const contenedor = document.getElementById('listaPeriodos');
+        contenedor.innerHTML = '';
+
+        if (!Array.isArray(periodos)) {
+          mostrarError('Error al cargar los períodos académicos');
+          return;
+        }
+
+        if (periodos.length === 0) {
+          mostrarVacio();
+          return;
+        }
+
+        const tabla = document.createElement('div');
+        tabla.className = 'table-responsive';
+        
+        tabla.innerHTML = `
+          <table class="table table-hover mb-0">
+            <thead style="background-color: #fef9e7;">
+              <tr>
+                <th class="fw-bold" style="color: #f39c12; border-bottom: 2px solid #f39c12;">
+                  <i class="fas fa-hashtag me-1"></i>ID
+                </th>
+                <th class="fw-bold" style="color: #f39c12; border-bottom: 2px solid #f39c12;">
+                  <i class="fas fa-tag me-1"></i>Nombre del Período
+                </th>
+                <th class="fw-bold" style="color: #f39c12; border-bottom: 2px solid #f39c12;">
+                  <i class="fas fa-calendar-plus me-1"></i>Fecha Inicio
+                </th>
+                <th class="fw-bold" style="color: #f39c12; border-bottom: 2px solid #f39c12;">
+                  <i class="fas fa-calendar-minus me-1"></i>Fecha Fin
+                </th>
+                <th class="fw-bold text-center" style="color: #f39c12; border-bottom: 2px solid #f39c12;">
+                  <i class="fas fa-toggle-on me-1"></i>Estado
+                </th>
+                <th class="fw-bold text-center" style="color: #f39c12; border-bottom: 2px solid #f39c12;">
+                  <i class="fas fa-cogs me-1"></i>Acciones
+                </th>
+              </tr>
+            </thead>
+            <tbody id="tbody-periodos">
+            </tbody>
+          </table>
+        `;
+
+        const tbody = tabla.querySelector('#tbody-periodos');
+        periodos.forEach(p => {
+          const fila = document.createElement('tr');
+          fila.className = 'align-middle';
+          
+          const fechaInicio = p.fechaInicio ? new Date(p.fechaInicio).toLocaleDateString('es-ES') : 'No definida';
+          const fechaFin = p.fechaFin ? new Date(p.fechaFin).toLocaleDateString('es-ES') : 'No definida';
+          
+          fila.innerHTML = `
+            <td class="fw-bold text-primary">#${p.id}</td>
+            <td>
+              <div class="fw-semibold">${p.nombrePeriodo || 'Sin nombre'}</div>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border">
+                <i class="fas fa-calendar me-1"></i>${fechaInicio}
+              </span>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border">
+                <i class="fas fa-calendar me-1"></i>${fechaFin}
+              </span>
+            </td>
+            <td class="text-center">
+              ${p.activo ? 
+                '<span class="badge bg-success fs-6"><i class="fas fa-check-circle me-1"></i>Activo</span>' : 
+                '<span class="badge bg-secondary fs-6"><i class="fas fa-times-circle me-1"></i>Inactivo</span>'
+              }
+            </td>
+            <td class="text-center">
+              ${!p.activo ? 
+                `<button class="btn btn-sm shadow-sm text-white" 
+                         style="background: linear-gradient(135deg, #27ae60, #2ecc71); border: none;"
+                         onclick="mostrarConfirmacion('${p.id}', '${p.nombrePeriodo || 'Sin nombre'}')">
+                   <i class="fas fa-play me-1"></i>Activar
+                 </button>` : 
+                '<span class="text-success fw-bold"><i class="fas fa-star me-1"></i>Período Actual</span>'
+              }
+            </td>
+          `;
+          tbody.appendChild(fila);
+        });
+
+        contenedor.appendChild(tabla);
+      } catch (error) {
+        console.error('Error:', error);
+        mostrarError('Error de conexión al cargar los períodos');
+      }
+    }
+
+    function mostrarError(mensaje) {
+      const contenedor = document.getElementById('listaPeriodos');
+      contenedor.innerHTML = `
+        <div class="text-center py-5">
+          <div class="mb-3">
+            <i class="fas fa-exclamation-triangle fs-1" style="color: #e74c3c;"></i>
+          </div>
+          <h5 class="text-danger">${mensaje}</h5>
+          <button class="btn btn-outline-primary mt-3" onclick="cargarPeriodos()">
+            <i class="fas fa-redo me-1"></i>Confirmar
+          </button>
+        </div>
+      `;
+    }
+
+    function mostrarVacio() {
+      const contenedor = document.getElementById('listaPeriodos');
+      contenedor.innerHTML = `
+        <div class="text-center py-5">
+          <div class="mb-3">
+            <i class="fas fa-calendar-times fs-1" style="color: #95a5a6;"></i>
+          </div>
+          <h5 class="text-muted">No hay períodos académicos registrados</h5>
+          <p class="text-muted">Comience creando el primer período académico</p>
+          <a href="crearPeriodos.html" class="btn text-white mt-3" 
+             style="background: linear-gradient(135deg, #f1c40f, #f39c12); border: none;">
+            <i class="fas fa-plus me-1"></i>Crear Primer Período
+          </a>
+        </div>
+      `;
+    }
+
+    function mostrarConfirmacion(id, nombre) {
+      periodoAActivar = id;
+      document.querySelector('#confirmModal .modal-body p').textContent = 
+        `¿Está seguro de que desea activar el período "${nombre}"?`;
+      confirmModal.show();
+    }
+
+    async function activar(id) {
+      try {
+        const contenedor = document.getElementById('listaPeriodos');
+        contenedor.innerHTML = `
+          <div class="text-center py-5">
+            <div class="spinner-border" style="color: #f39c12;" role="status">
+              <span class="visually-hidden">Activando...</span>
+            </div>
+            <p class="mt-2 text-muted">Activando período académico...</p>
+          </div>
+        `;
+
+        const response = await fetch(`/api/periodos/activar/${id}`, { method: 'PUT' });
+        
+        if (response.ok) {
+          // Mostrar mensaje de éxito
+          const alertDiv = document.createElement('div');
+          alertDiv.className = 'alert alert-success alert-dismissible fade show';
+          alertDiv.innerHTML = `
+            <i class="fas fa-check-circle me-2"></i>
+            <strong>¡Éxito!</strong> Período académico activado correctamente.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          `;
+          document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.row'));
+          
+          // Recargar la lista
+          setTimeout(() => {
+            cargarPeriodos();
+          }, 1000);
+        } else {
+          throw new Error('Error en la respuesta del servidor');
+        }
+      } catch (error) {
+        console.error('Advertencia:', error);
+        mostrarError('Seguro de activarlo');
+      }
+    }
+
+    // Event listeners
+    document.getElementById('confirmActivar').addEventListener('click', function() {
+      if (periodoAActivar) {
+        confirmModal.hide();
+        activar(periodoAActivar);
+        periodoAActivar = null;
+      }
+    });
+
+    // Cargar períodos al iniciar
+    cargarPeriodos();
+  </script>
+</body>
+</html>

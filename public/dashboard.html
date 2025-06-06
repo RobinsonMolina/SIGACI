@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGACI Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-primary">
+
+  <div class="container-fluid">
+    <div class="row min-vh-100">
+      
+      <!-- Sidebar -->
+      <div class="col-md-3 col-lg-2 bg-dark p-0">
+        <div class="d-flex flex-column min-vh-100">
+          
+          <!-- Header del sidebar -->
+          <div class="bg-gradient text-center py-4 border-bottom border-secondary">
+            <h2 class="text-warning fw-bold mb-2">
+              <i class="fas fa-graduation-cap me-2"></i>SIGACI
+            </h2>
+            <p class="text-light small mb-0">Sistema de Gestión Académica</p>
+          </div>
+          
+          <!-- Menú de navegación -->
+          <nav class="flex-grow-1 py-3">
+            <ul class="list-unstyled px-2">
+              
+              <li class="mb-2">
+                <button class="btn btn-outline-light w-100 text-start d-flex align-items-center py-3" 
+                        onclick="mostrarOpciones('estudiantes')" data-bs-toggle="tooltip" title="Gestión de Estudiantes">
+                  <i class="fas fa-user-graduate me-3 text-info"></i>
+                  <span>Estudiantes</span>
+                  <i class="fas fa-chevron-right ms-auto small"></i>
+                </button>
+              </li>
+              
+              <li class="mb-2">
+                <button class="btn btn-outline-light w-100 text-start d-flex align-items-center py-3" 
+                        onclick="mostrarOpciones('asignaturas')" data-bs-toggle="tooltip" title="Gestión de Asignaturas">
+                  <i class="fas fa-book me-3 text-success"></i>
+                  <span>Asignaturas</span>
+                  <i class="fas fa-chevron-right ms-auto small"></i>
+                </button>
+              </li>
+              
+              <li class="mb-2">
+                <button class="btn btn-outline-light w-100 text-start d-flex align-items-center py-3" 
+                        onclick="mostrarOpciones('docentes')" data-bs-toggle="tooltip" title="Gestión de Docentes">
+                  <i class="fas fa-chalkboard-teacher me-3 text-warning"></i>
+                  <span>Docentes</span>
+                  <i class="fas fa-chevron-right ms-auto small"></i>
+                </button>
+              </li>
+              
+              <li class="mb-2">
+                <button class="btn btn-outline-light w-100 text-start d-flex align-items-center py-3" 
+                        onclick="mostrarOpciones('inscripciones')" data-bs-toggle="tooltip" title="Gestión de Inscripciones">
+                  <i class="fas fa-clipboard-list me-3 text-danger"></i>
+                  <span>Inscripciones</span>
+                  <i class="fas fa-chevron-right ms-auto small"></i>
+                </button>
+              </li>
+              
+              <li class="mb-2">
+                <button class="btn btn-outline-light w-100 text-start d-flex align-items-center py-3" 
+                        onclick="mostrarOpciones('periodos')" data-bs-toggle="tooltip" title="Gestión de Períodos">
+                  <i class="fas fa-calendar-alt me-3 text-primary"></i>
+                  <span>Períodos</span>
+                  <i class="fas fa-chevron-right ms-auto small"></i>
+                </button>
+              </li>
+              
+              <li class="mb-2">
+                <button class="btn btn-outline-light w-100 text-start d-flex align-items-center py-3" 
+                        onclick="mostrarOpciones('notas')" data-bs-toggle="tooltip" title="Gestión de Notas">
+                  <i class="fas fa-chart-line me-3 text-light"></i>
+                  <span>Notas</span>
+                  <i class="fas fa-chevron-right ms-auto small"></i>
+                </button>
+              </li>
+              
+            </ul>
+          </nav>
+          
+          <!-- Footer del sidebar -->
+          <div class="border-top border-secondary p-3 text-center">
+            <small class="text-muted">© 2024 SIGACI v2.0</small>
+          </div>
+          
+        </div>
+      </div>
+      
+      <!-- Contenido principal -->
+      <div class="col-md-9 col-lg-10 p-0">
+        
+      <!-- Header superior -->
+<header class="bg-white shadow-sm border-bottom p-3 mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h4 class="text-dark mb-1">Pagina Principal</h4>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0 small">
+        </ol>
+      </nav>
+    </div>
+    <div class="d-flex align-items-center">
+      <span class="badge bg-success me-3">
+        <i class="fas fa-circle me-1"></i>En línea
+      </span>
+      <a href="index.html" class="btn btn-outline-danger">
+        <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+      </a>
+    </div>
+  </div>
+</header>
+
+        <!-- Panel de contenido -->
+        <main class="px-4 pb-4">
+          <div id="panelOpciones" class="container-fluid">
+            
+            <!-- Página de bienvenida -->
+            <div class="row justify-content-center">
+              <div class="col-lg-8">
+                
+                <div class="card border-0 shadow-lg mb-5">
+                  <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                      <i class="fas fa-graduation-cap text-primary" style="font-size: 4rem;"></i>
+                    </div>
+                    <h1 class="card-title text-primary mb-3">¡Bienvenido a SIGACI!</h1>
+                    <p class="card-text text-muted lead mb-4">
+                      Sistema Integral de Gestión Académica y Control de Inscripciones
+                    </p>
+                    <p class="text-muted">
+                      Seleccione una opción del menú lateral para comenzar a gestionar su institución educativa.
+                    </p>
+                  </div>
+                </div>
+                
+                <!-- Cards de estadísticas rápidas -->
+                <div class="row g-4">
+                  <div class="col-md-3">
+                    <div class="card bg-info text-white h-100">
+                      <div class="card-body text-center">
+                        <i class="fas fa-user-graduate fs-1 mb-3"></i>
+                        <h5 class="card-title">Estudiantes</h5>
+                        <p class="card-text">Gestión completa</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="card bg-success text-white h-100">
+                      <div class="card-body text-center">
+                        <i class="fas fa-book fs-1 mb-3"></i>
+                        <h5 class="card-title">Asignaturas</h5>
+                        <p class="card-text">Control académico</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="card bg-warning text-white h-100">
+                      <div class="card-body text-center">
+                        <i class="fas fa-chalkboard-teacher fs-1 mb-3"></i>
+                        <h5 class="card-title">Docentes</h5>
+                        <p class="card-text">Personal académico</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="card bg-danger text-white h-100">
+                      <div class="card-body text-center">
+                        <i class="fas fa-chart-line fs-1 mb-3"></i>
+                        <h5 class="card-title">Notas</h5>
+                        <p class="card-text">Evaluaciones</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+              </div>
+            </div>
+            
+          </div>
+        </main>
+        
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function mostrarOpciones(seccion) {
+      const panel = document.getElementById('panelOpciones');
+      const breadcrumb = document.getElementById('breadcrumb-actual');
+      
+      let contenido = '';
+      let titulo = '';
+      let icono = '';
+      let colorTema = '';
+      
+      switch (seccion) {
+        case 'estudiantes':
+          titulo = 'Estudiantes';
+          icono = 'fas fa-user-graduate';
+          colorTema = 'info';
+          contenido = `
+            <div class="row">
+              <div class="col-12">
+                <div class="card border-0 shadow-sm mb-4">
+                  <div class="card-header bg-${colorTema} text-white">
+                    <h4 class="mb-0"><i class="${icono} me-2"></i>Gestión de ${titulo}</h4>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-4">
+                      <div class="col-md-6">
+                        <div class="card h-100 border-${colorTema}">
+                          <div class="card-body text-center">
+                            <i class="fas fa-user-plus text-${colorTema} fs-1 mb-3"></i>
+                            <h5 class="card-title">Inscribir Estudiante</h5>
+                            <p class="card-text text-muted">Registrar nuevos estudiantes en el sistema</p>
+                            <a href="inscribirEstudiante.html" class="btn btn-${colorTema}">
+                              <i class="fas fa-plus me-2"></i>Inscribir
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="card h-100 border-${colorTema}">
+                          <div class="card-body text-center">
+                            <i class="fas fa-list text-${colorTema} fs-1 mb-3"></i>
+                            <h5 class="card-title">Ver Estudiantes</h5>
+                            <p class="card-text text-muted">Consultar y gestionar estudiantes registrados</p>
+                            <a href="estudiantes.html" class="btn btn-outline-${colorTema}">
+                              <i class="fas fa-eye me-2"></i>Ver Lista
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>`;
+          break;
+          
+        case 'asignaturas':
+          titulo = 'Asignaturas';
+          icono = 'fas fa-book';
+          colorTema = 'success';
+          contenido = `
+            <div class="row">
+              <div class="col-12">
+                <div class="card border-0 shadow-sm mb-4">
+                  <div class="card-header bg-${colorTema} text-white">
+                    <h4 class="mb-0"><i class="${icono} me-2"></i>Gestión de ${titulo}</h4>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-4">
+                      <div class="col-md-4">
+                        <div class="card h-100 border-${colorTema}">
+                          <div class="card-body text-center">
+                            <i class="fas fa-plus-circle text-${colorTema} fs-1 mb-3"></i>
+                            <h5 class="card-title">Agregar Asignatura</h5>
+                            <p class="card-text text-muted">Crear nuevas asignaturas</p>
+                            <a href="agregarAsignatura.html" class="btn btn-${colorTema}">
+                              <i class="fas fa-plus me-2"></i>Agregar
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="card h-100 border-${colorTema}">
+                          <div class="card-body text-center">
+                            <i class="fas fa-list-alt text-${colorTema} fs-1 mb-3"></i>
+                            <h5 class="card-title">Ver Asignaturas</h5>
+                            <p class="card-text text-muted">Consultar asignaturas disponibles</p>
+                            <a href="asignaturas.html" class="btn btn-outline-${colorTema}">
+                              <i class="fas fa-eye me-2"></i>Ver Lista
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="card h-100 border-${colorTema}">
+                          <div class="card-body text-center">
+                            <i class="fas fa-user-check text-${colorTema} fs-1 mb-3"></i>
+                            <h5 class="card-title">Actualizar Asignatura</h5>
+                            <p class="card-text text-muted">Actualizar asignaturas existentes</p>
+                            <a href="actualizarAsignatura.html" class="btn btn-${colorTema}">
+                              <i class="fas fa-edit me-2"></i>Actualizar
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>`;
+          break;
+          
+        case 'docentes':
+          titulo = 'Docentes';
+          icono = 'fas fa-chalkboard-teacher';
+          colorTema = 'warning';
+          contenido = `
+            <div class="row">
+              <div class="col-12">
+                <div class="card border-0 shadow-sm mb-4">
+                  <div class="card-header bg-${colorTema} text-white">
+                    <h4 class="mb-0"><i class="${icono} me-2"></i>Gestión de ${titulo}</h4>
+                  </div>
+                  <div class="card-body">
+                    <div class="row justify-content-center">
+                      <div class="col-md-6">
+                        <div class="card h-100 border-${colorTema}">
+                          <div class="card-body text-center">
+                            <i class="fas fa-users text-${colorTema} fs-1 mb-3"></i>
+                            <h5 class="card-title">Administrar Docentes</h5>
+                            <p class="card-text text-muted">Consultar información del personal docente</p>
+                            <a href="docentes.html" class="btn btn-${colorTema}">
+                              <i class="fas fa-eye me-2"></i>Ver Lista
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>`;
+          break;
+          
+        case 'inscripciones':
+          titulo = 'Inscripciones';
+          icono = 'fas fa-clipboard-list';
+          colorTema = 'danger';
+          contenido = `
+            <div class="row">
+              <div class="col-12">
+                <div class="card border-0 shadow-sm mb-4">
+                  <div class="card-header bg-${colorTema} text-white">
+                    <h4 class="mb-0"><i class="${icono} me-2"></i>Gestión de ${titulo}</h4>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-4">
+                      <div class="col-md-6">
+                        <div class="card h-100 border-${colorTema}">
+                          <div class="card-body text-center">
+                            <i class="fas fa-user-plus text-${colorTema} fs-1 mb-3"></i>
+                            <h5 class="card-title">Realizar Inscripción</h5>
+                            <p class="card-text text-muted">Inscribir estudiantes en cursos y asignaturas</p>
+                            <a href="inscripciones.html" class="btn btn-${colorTema}">
+                              <i class="fas fa-plus me-2"></i>Nueva Inscripción
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="card h-100 border-${colorTema}">
+                          <div class="card-body text-center">
+                            <i class="fas fa-cogs text-${colorTema} fs-1 mb-3"></i>
+                            <h5 class="card-title">Gestionar Inscripción</h5>
+                            <p class="card-text text-muted">Administrar y consultar inscripciones existentes</p>
+                            <a href="aprobar.html" class="btn btn-outline-${colorTema}">
+                              <i class="fas fa-cog me-2"></i>Gestionar
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>`;
+          break;
+          
+        case 'periodos':
+          titulo = 'Períodos';
+          icono = 'fas fa-calendar-alt';
+          colorTema = 'primary';
+          contenido = `
+            <div class="row">
+              <div class="col-12">
+                <div class="card border-0 shadow-sm mb-4">
+                  <div class="card-header bg-${colorTema} text-white">
+                    <h4 class="mb-0"><i class="${icono} me-2"></i>Gestión de ${titulo}</h4>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-4">
+                      <div class="col-md-6">
+                        <div class="card h-100 border-${colorTema}">
+                          <div class="card-body text-center">
+                            <i class="fas fa-calendar-check text-${colorTema} fs-1 mb-3"></i>
+                            <h5 class="card-title">Ver Períodos</h5>
+                            <p class="card-text text-muted">Consultar períodos académicos</p>
+                            <a href="verPeriodos.html" class="btn btn-outline-${colorTema}">
+                              <i class="fas fa-eye me-2"></i>Ver Lista
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="card h-100 border-${colorTema}">
+                          <div class="card-body text-center">
+                            <i class="fas fa-calendar-plus text-${colorTema} fs-1 mb-3"></i>
+                            <h5 class="card-title">Crear Período</h5>
+                            <p class="card-text text-muted">Crear nuevos períodos académicos</p>
+                            <a href="crearPeriodos.html" class="btn btn-${colorTema}">
+                              <i class="fas fa-plus me-2"></i>Crear
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>`;
+          break;
+          
+        case 'notas':
+          titulo = 'Notas';
+          icono = 'fas fa-chart-line';
+          colorTema = 'dark';
+          contenido = `
+            <div class="row">
+              <div class="col-12">
+                <div class="card border-0 shadow-sm mb-4">
+                  <div class="card-header bg-${colorTema} text-white">
+                    <h4 class="mb-0"><i class="${icono} me-2"></i>Gestión de ${titulo}</h4>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-4">
+                      <div class="col-md-4">
+                        <div class="card h-100 border-${colorTema}">
+                          <div class="card-body text-center">
+                            <i class="fas fa-edit text-${colorTema} fs-1 mb-3"></i>
+                            <h5 class="card-title">Registrar Nota</h5>
+                            <p class="card-text text-muted">Ingresar nuevas calificaciones</p>
+                            <a href="registrarNota.html" class="btn btn-${colorTema}">
+                              <i class="fas fa-plus me-2"></i>Registrar
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="card h-100 border-${colorTema}">
+                          <div class="card-body text-center">
+                            <i class="fas fa-sync-alt text-${colorTema} fs-1 mb-3"></i>
+                            <h5 class="card-title">Notas de Estudiantes</h5>
+                            <p class="card-text text-muted">Notas de estudiantes registradas</p>
+                            <a href="notasEstudiantes.html" class="btn btn-outline-${colorTema}">
+                              <i class="fas fa-edit me-2"></i>Ver
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="card h-100 border-${colorTema}">
+                          <div class="card-body text-center">
+                            <i class="fas fa-sync-alt text-${colorTema} fs-1 mb-3"></i>
+                            <h5 class="card-title">Promedios de notas</h5>
+                            <p class="card-text text-muted">Notas de estudiantes registradas</p>
+                            <a href="notasPromedio.html" class="btn btn-outline-${colorTema}">
+                              <i class="fas fa-edit me-2"></i>Ver
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>`;
+          break;
+      }
+      
+      panel.innerHTML = contenido;
+      breadcrumb.textContent = titulo;
+      
+      // Añadir animación suave
+      panel.style.opacity = '0';
+      setTimeout(() => {
+        panel.style.transition = 'opacity 0.3s ease-in-out';
+        panel.style.opacity = '1';
+      }, 50);
+    }
+
+    // Inicializar tooltips de Bootstrap
+    document.addEventListener('DOMContentLoaded', function () {
+      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

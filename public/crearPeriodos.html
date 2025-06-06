@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGACI - Crear Período Académico</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body style="background: linear-gradient(135deg, #f8f6f0 0%, #f0ede4 100%); min-height: 100vh;">
+  
+  <!-- Header Navigation -->
+  <nav class="navbar navbar-expand-lg" style="background-color: #d4af37; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <div class="container">
+      <a class="navbar-brand fw-bold text-white fs-4" href="dashboard.html">
+        <i class="fas fa-graduation-cap me-2"></i>SIGACI
+      </a>
+      <div class="navbar-nav ms-auto">
+        <a class="nav-link text-white" href="dashboard.html">
+          <i class="fas fa-home me-1"></i>Pagina Principal
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 col-xl-7">
+        
+        <!-- Header Card -->
+        <div class="card border-0 shadow-sm mb-4" style="background-color: #faf8f3; border-left: 5px solid #d4af37 !important;">
+          <div class="card-body text-center py-4">
+            <div class="mb-3">
+              <i class="fas fa-calendar-plus" style="font-size: 3rem; color: #b8860b;"></i>
+            </div>
+            <h1 class="card-title fw-bold mb-2" style="color: #8b7355;">Crear Período Académico</h1>
+            <p class="text-muted mb-0">Configure un nuevo período académico para el sistema</p>
+          </div>
+        </div>
+
+        <!-- Form Card -->
+        <div class="card border-0 shadow-lg" style="background-color: #fefdfb;">
+          <div class="card-header border-0 py-3" style="background-color: #f5f2e8;">
+            <h5 class="mb-0 fw-semibold d-flex align-items-center" style="color: #8b7355;">
+              <i class="fas fa-edit me-2"></i>Información del Período
+            </h5>
+          </div>
+          
+          <div class="card-body p-4">
+            <form id="formPeriodo">
+              <div class="row g-4">
+                
+                <!-- ID del Período -->
+                <div class="col-md-6">
+                  <label for="id" class="form-label fw-semibold" style="color: #8b7355;">
+                    <i class="fas fa-fingerprint me-2"></i>ID del Período
+                  </label>
+                  <input type="text" 
+                         class="form-control form-control-lg" 
+                         id="id"
+                         name="id" 
+                         placeholder="Ej: 2024-I, 2025-II" 
+                         required 
+                         style="border: 2px solid #e8e5d9; background-color: #faf8f3;">
+                  <div class="form-text text-muted">
+                    <i class="fas fa-info-circle me-1"></i>Formato sugerido: YYYY-Periodo
+                  </div>
+                </div>
+
+                <!-- Nombre del Período -->
+                <div class="col-md-6">
+                  <label for="nombrePeriodo" class="form-label fw-semibold" style="color: #8b7355;">
+                    <i class="fas fa-tag me-2"></i>Nombre del Período
+                  </label>
+                  <input type="text" 
+                         class="form-control form-control-lg" 
+                         id="nombrePeriodo"
+                         name="nombrePeriodo" 
+                         placeholder="Ej: Primer Semestre 2024" 
+                         required 
+                         style="border: 2px solid #e8e5d9; background-color: #faf8f3;">
+                </div>
+
+                <!-- Fecha de Inicio -->
+                <div class="col-md-6">
+                  <label for="fechaInicio" class="form-label fw-semibold" style="color: #8b7355;">
+                    <i class="fas fa-calendar-check me-2"></i>Fecha de Inicio
+                  </label>
+                  <input type="date" 
+                         class="form-control form-control-lg" 
+                         id="fechaInicio"
+                         name="fechaInicio" 
+                         required 
+                         style="border: 2px solid #e8e5d9; background-color: #faf8f3;">
+                </div>
+
+                <!-- Fecha de Fin -->
+                <div class="col-md-6">
+                  <label for="fechaFin" class="form-label fw-semibold" style="color: #8b7355;">
+                    <i class="fas fa-calendar-times me-2"></i>Fecha de Finalización
+                  </label>
+                  <input type="date" 
+                         class="form-control form-control-lg" 
+                         id="fechaFin"
+                         name="fechaFin" 
+                         required 
+                         style="border: 2px solid #e8e5d9; background-color: #faf8f3;">
+                </div>
+
+                <!-- Estado Activo -->
+                <div class="col-12">
+                  <div class="card" style="background-color: #f8f6f0; border: 2px solid #e8e5d9;">
+                    <div class="card-body py-3">
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" 
+                               type="checkbox" 
+                               role="switch"
+                               id="activo" 
+                               name="activo"
+                               style="transform: scale(1.2);">
+                        <label class="form-check-label fw-semibold ms-2" for="activo" style="color: #8b7355;">
+                          <i class="fas fa-toggle-on me-2"></i>Período Activo
+                        </label>
+                        <div class="form-text text-muted mt-2">
+                          <i class="fas fa-lightbulb me-1"></i>
+                          Marque esta opción si este período debe estar activo inmediatamente
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Duration Info Card -->
+                <div class="col-12">
+                  <div class="alert border-0" id="durationAlert" style="background-color: #fff8dc; border-left: 4px solid #d4af37 !important; display: none;">
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-clock me-2" style="color: #b8860b;"></i>
+                      <div>
+                        <strong>Duración del período:</strong>
+                        <span id="durationText" class="ms-2"></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-5">
+                <button type="submit" 
+                        class="btn btn-lg px-5 me-md-2" 
+                        id="btnGuardar"
+                        style="background: linear-gradient(45deg, #d4af37, #b8860b); border: none; color: white; font-weight: 600;">
+                  <i class="fas fa-save me-2"></i><span id="btnText">Crear Período</span>
+                </button>
+                <a href="periodos.html" 
+                   class="btn btn-outline-secondary btn-lg px-5">
+                  <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Help Card -->
+        <div class="card border-0 shadow-sm mt-4" style="background-color: #f8f6f0; border-left: 4px solid #b8860b !important;">
+          <div class="card-body py-3">
+            <h6 class="fw-semibold mb-2" style="color: #8b7355;">
+              <i class="fas fa-question-circle me-2"></i>Ayuda
+            </h6>
+            <ul class="list-unstyled mb-0 small text-muted">
+              <li><i class="fas fa-check me-2 text-success"></i>El ID debe ser único en el sistema</li>
+              <li><i class="fas fa-check me-2 text-success"></i>La fecha de fin debe ser posterior a la fecha de inicio</li>
+              <li><i class="fas fa-check me-2 text-success"></i>Solo puede haber un período activo a la vez</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Success/Error Alert Modal -->
+  <div id="alertContainer" class="position-fixed top-50 start-50 translate-middle" style="z-index: 9999; display: none;">
+    <div class="alert shadow-lg border-0" id="alertMessage" role="alert">
+      <div class="d-flex align-items-center">
+        <i id="alertIcon" class="me-3 fs-4"></i>
+        <div>
+          <div class="fw-bold" id="alertTitle"></div>
+          <div id="alertText"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-5 py-4" style="background-color: #8b7355;">
+    <div class="container text-center">
+      <p class="text-white mb-0">
+        <i class="fas fa-graduation-cap me-2"></i>
+        Sistema de Gestión Académica - SIGACI
+      </p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', () => {
+      setupFormValidation();
+      setupDateValidation();
+    });
+
+    // Form submission
+    document.getElementById('formPeriodo').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Validate dates before submission
+      if (!validateDates()) {
+        return;
+      }
+
+      // Show loading state
+      const submitBtn = document.getElementById('btnGuardar');
+      const btnText = document.getElementById('btnText');
+      const originalText = btnText.textContent;
+      btnText.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creando...';
+      submitBtn.disabled = true;
+
+      try {
+        const form = new FormData(e.target);
+        const data = Object.fromEntries(form.entries());
+        data.activo = form.get('activo') === 'on';
+
+        const res = await fetch('/api/periodos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          showAlert('Período creado exitosamente', 'El nuevo período académico se ha registrado correctamente', 'success');
+          
+          // Redirect after successful creation
+          setTimeout(() => {
+            window.location.href = 'verPeriodos.html';
+          }, 2000);
+        } else {
+          const error = await res.json();
+          showAlert('Error al crear período', error.error || 'No se pudo crear el período académico', 'error');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showAlert('Error de conexión', 'No se pudo conectar con el servidor', 'error');
+      } finally {
+        btnText.textContent = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Setup form validation
+    function setupFormValidation() {
+      document.querySelectorAll('.form-control').forEach(input => {
+        input.addEventListener('focus', function() {
+          this.style.borderColor = '#d4af37';
+          this.style.boxShadow = '0 0 0 0.2rem rgba(212, 175, 55, 0.25)';
+        });
+        
+        input.addEventListener('blur', function() {
+          this.style.borderColor = '#e8e5d9';
+          this.style.boxShadow = 'none';
+        });
+      });
+
+      // ID format validation
+      document.getElementById('id').addEventListener('input', function() {
+        const value = this.value.toUpperCase();
+        this.value = value;
+        
+        // Suggest format
+        if (value && !value.match(/^\d{4}-[IVX]+$/)) {
+          this.setCustomValidity('Formato sugerido: YYYY-I o YYYY-II');
+        } else {
+          this.setCustomValidity('');
+        }
+      });
+    }
+
+    // Setup date validation
+    function setupDateValidation() {
+      const fechaInicio = document.getElementById('fechaInicio');
+      const fechaFin = document.getElementById('fechaFin');
+      const durationAlert = document.getElementById('durationAlert');
+      const durationText = document.getElementById('durationText');
+
+      function updateDuration() {
+        if (fechaInicio.value && fechaFin.value) {
+          const inicio = new Date(fechaInicio.value);
+          const fin = new Date(fechaFin.value);
+          
+          if (fin > inicio) {
+            const diffTime = Math.abs(fin - inicio);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const diffWeeks = Math.floor(diffDays / 7);
+            
+            durationText.textContent = `${diffDays} días (${diffWeeks} semanas aproximadamente)`;
+            durationAlert.style.display = 'block';
+          } else {
+            durationAlert.style.display = 'none';
+          }
+        } else {
+          durationAlert.style.display = 'none';
+        }
+      }
+
+      fechaInicio.addEventListener('change', updateDuration);
+      fechaFin.addEventListener('change', updateDuration);
+
+      // Set minimum date to today
+      const today = new Date().toISOString().split('T')[0];
+      fechaInicio.min = today;
+      
+      // Update end date minimum when start date changes
+      fechaInicio.addEventListener('change', function() {
+        fechaFin.min = this.value;
+        if (fechaFin.value && fechaFin.value < this.value) {
+          fechaFin.value = '';
+        }
+      });
+    }
+
+    // Validate dates
+    function validateDates() {
+      const fechaInicio = document.getElementById('fechaInicio').value;
+      const fechaFin = document.getElementById('fechaFin').value;
+      
+      if (!fechaInicio || !fechaFin) {
+        showAlert('Fechas requeridas', 'Por favor complete ambas fechas del período', 'error');
+        return false;
+      }
+      
+      if (new Date(fechaFin) <= new Date(fechaInicio)) {
+        showAlert('Fechas inválidas', 'La fecha de finalización debe ser posterior a la fecha de inicio', 'error');
+        return false;
+      }
+      
+      return true;
+    }
+
+    // Show alert
+    function showAlert(title, message, type) {
+      const alertContainer = document.getElementById('alertContainer');
+      const alertMessage = document.getElementById('alertMessage');
+      const alertIcon = document.getElementById('alertIcon');
+      const alertTitle = document.getElementById('alertTitle');
+      const alertText = document.getElementById('alertText');
+
+      alertTitle.textContent = title;
+      alertText.textContent = message;
+
+      if (type === 'success') {
+        alertMessage.className = 'alert alert-success shadow-lg border-0';
+        alertIcon.className = 'fas fa-check-circle me-3 fs-4';
+      } else {
+        alertMessage.className = 'alert alert-danger shadow-lg border-0';
+        alertIcon.className = 'fas fa-exclamation-triangle me-3 fs-4';
+      }
+
+      alertContainer.style.display = 'block';
+      
+      // Auto-hide after 5 seconds for errors, 2 seconds for success
+      const hideTimeout = type === 'success' ? 2000 : 5000;
+      setTimeout(() => {
+        alertContainer.style.display = 'none';
+      }, hideTimeout);
+    }
+
+    // Toggle switch enhancement
+    document.getElementById('activo').addEventListener('change', function() {
+      const label = this.nextElementSibling;
+      if (this.checked) {
+        label.innerHTML = '<i class="fas fa-toggle-on me-2"></i>Período Activo';
+        label.style.color = '#28a745';
+      } else {
+        label.innerHTML = '<i class="fas fa-toggle-off me-2"></i>Período Inactivo';
+        label.style.color = '#8b7355';
+      }
+    });
+  </script>
+</body>
+</html>

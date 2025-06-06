@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notas de Estudiantes - SIGACI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .nota-bajo { color: #dc3545; font-weight: bold; }
+    .nota-alto { color: #ffc107; font-weight: bold; }
+    .nota-excelente { color: #198754; font-weight: bold; }
+    .estado-badge {
+      padding: 4px 12px;
+      border-radius: 15px;
+      font-size: 0.85em;
+      font-weight: 500;
+    }
+    .estado-bajo { background-color: #f8d7da; color: #721c24; }
+    .estado-alto { background-color: #fff3cd; color: #856404; }
+    .estado-excelente { background-color: #d1e7dd; color: #0f5132; }
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .student-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 0.9em;
+    }
+    .alert-empty {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: #6c757d;
+    }
+  </style>
+</head>
+<body class="bg-light">
+
+  <!-- Header -->
+  <nav class="navbar navbar-expand-lg" style="background: linear-gradient(135deg, #6c757d, #495057);">
+    <div class="container">
+      <a class="navbar-brand text-white fw-bold fs-3" href="#">
+        <i class="fas fa-graduation-cap me-2"></i>SIGACI
+      </a>
+      <div class="ms-auto">
+        <a class="nav-link text-white" href="dashboard.html">
+          <i class="fas fa-home me-1"></i>Pagina Principal
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="text-dark mb-1">
+              <i class="fas fa-chart-line text-primary me-2"></i>
+              Notas de Estudiantes
+            </h2>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <select class="form-select" id="filtroSemestre" onchange="aplicarFiltros()">
+          <option value="">Todos los semestres</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <select class="form-select" id="filtroAsignatura" onchange="aplicarFiltros()">
+          <option value="">Todas las asignaturas</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <div class="input-group">
+          <span class="input-group-text"><i class="fas fa-search"></i></span>
+          <input type="text" class="form-control" id="buscarEstudiante" 
+                 placeholder="Buscar estudiante..." onkeyup="aplicarFiltros()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas rápidas -->
+    <div class="row mb-4" id="estadisticas">
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center">
+            <div class="d-flex justify-content-center align-items-center mb-2">
+              <i class="fas fa-users text-primary fs-4 me-2"></i>
+              <h3 class="mb-0" id="totalEstudiantes">
+                <div class="loading-spinner"></div>
+              </h3>
+            </div>
+            <p class="text-muted mb-0">Total Estudiantes</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center">
+            <div class="d-flex justify-content-center align-items-center mb-2">
+              <i class="fas fa-star text-success fs-4 me-2"></i>
+              <h3 class="mb-0" id="estudiantesExcelente">
+                <div class="loading-spinner"></div>
+              </h3>
+            </div>
+            <p class="text-muted mb-0">Excelente</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center">
+            <div class="d-flex justify-content-center align-items-center mb-2">
+              <i class="fas fa-thumbs-up text-warning fs-4 me-2"></i>
+              <h3 class="mb-0" id="estudiantesAlto">
+                <div class="loading-spinner"></div>
+              </h3>
+            </div>
+            <p class="text-muted mb-0">Alto</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center">
+            <div class="d-flex justify-content-center align-items-center mb-2">
+              <i class="fas fa-exclamation-triangle text-danger fs-4 me-2"></i>
+              <h3 class="mb-0" id="estudiantesBajo">
+                <div class="loading-spinner"></div>
+              </h3>
+            </div>
+            <p class="text-muted mb-0">Bajo</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de Notas -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h5 class="mb-0">
+          <i class="fas fa-table me-2"></i>
+          Registro de Calificaciones
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="px-4 py-3">
+                  <i class="fas fa-user me-2"></i>Estudiante
+                </th>
+                <th class="px-4 py-3">
+                  <i class="fas fa-book me-2"></i>Asignatura
+                </th>
+                <th class="px-4 py-3">
+                  <i class="fas fa-chart-bar me-2"></i>Nota
+                </th>
+                <th class="px-4 py-3">
+                  <i class="fas fa-flag me-2"></i>Estado
+                </th>
+                <th class="px-4 py-3">
+                  <i class="fas fa-calendar me-2"></i>Fecha
+                </th>
+                <th class="px-4 py-3">
+                  <i class="fas fa-cog me-2"></i>Acciones
+                </th>
+              </tr>
+            </thead>
+            <tbody id="tablaNotas">
+              <tr>
+                <td colspan="6" class="text-center py-5">
+                  <div class="loading-spinner me-2"></div>
+                  Cargando datos...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer bg-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <small class="text-muted" id="infoRegistros">Cargando...</small>
+          <nav>
+            <ul class="pagination pagination-sm mb-0" id="paginacion">
+              <!-- Paginación dinámica -->
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Modal para Ver/Editar Nota -->
+  <div class="modal fade" id="modalNota" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalNotaTitulo">Detalle de Nota</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formNota">
+            <input type="hidden" id="notaId">
+            <div class="mb-3">
+              <label class="form-label">Estudiante</label>
+              <input type="text" class="form-control" id="estudianteNombre" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Asignatura</label>
+              <input type="text" class="form-control" id="asignaturaNombre" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Nota Final</label>
+              <input type="number" class="form-control" id="notaFinal" 
+                     min="0" max="5" step="0.1" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Observaciones</label>
+              <textarea class="form-control" id="observaciones" rows="3"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" onclick="guardarNota()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Variables globales
+    let datosNotas = [];
+    let datosFiltrados = [];
+    let paginaActual = 1;
+    const registrosPorPagina = 10;
+
+    // Función para obtener iniciales del nombre
+    function obtenerIniciales(nombre) {
+      return nombre.split(' ')
+        .map(palabra => palabra.charAt(0).toUpperCase())
+        .slice(0, 2)
+        .join('');
+    }
+
+    // Función para obtener color del avatar
+    function obtenerColorAvatar(index) {
+      const colores = ['#007bff', '#28a745', '#17a2b8', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#20c997'];
+      return colores[index % colores.length];
+    }
+
+    // Función para clasificar nota
+    function clasificarNota(nota) {
+      if (nota >= 4.0) return 'Excelente';
+      if (nota >= 3.5) return 'Alto';
+      return 'Bajo';
+    }
+
+    // Función para obtener clase CSS de nota
+    function obtenerClaseNota(nota) {
+      if (nota >= 4.0) return 'nota-excelente';
+      if (nota >= 3.5) return 'nota-alto';
+      return 'nota-bajo';
+    }
+
+    // Función para obtener clase CSS de estado
+    function obtenerClaseEstado(nota) {
+      if (nota >= 4.0) return 'estado-excelente';
+      if (nota >= 3.5) return 'estado-alto';
+      return 'estado-bajo';
+    }
+
+    // Función para cargar todas las notas
+    async function cargarNotas() {
+      try {
+        const response = await fetch(`api/notas`);
+        if (!response.ok) throw new Error('Error al cargar notas');
+        
+        datosNotas = await response.json();
+        datosFiltrados = [...datosNotas];
+        
+        actualizarEstadisticas();
+        cargarFiltros();
+        mostrarNotas();
+        
+      } catch (error) {
+        console.error('Error:', error);
+        mostrarError('No se pudieron cargar las notas. Verifique la conexión con el servidor.');
+      }
+    }
+
+    // Función para cargar opciones de filtros
+    function cargarFiltros() {
+      // Cargar semestres únicos
+      const semestres = [...new Set(datosNotas
+        .filter(nota => nota.asignatura)
+        .map(nota => nota.asignatura.semestre))]
+        .sort((a, b) => a - b);
+      
+      const filtroSemestre = document.getElementById('filtroSemestre');
+      filtroSemestre.innerHTML = '<option value="">Todos los semestres</option>';
+      semestres.forEach(semestre => {
+        filtroSemestre.innerHTML += `<option value="${semestre}">Semestre ${semestre}</option>`;
+      });
+
+      // Cargar asignaturas únicas
+      const asignaturas = [...new Set(datosNotas
+        .filter(nota => nota.asignatura)
+        .map(nota => nota.asignatura.nombre))]
+        .sort();
+      
+      const filtroAsignatura = document.getElementById('filtroAsignatura');
+      filtroAsignatura.innerHTML = '<option value="">Todas las asignaturas</option>';
+      asignaturas.forEach(asignatura => {
+        filtroAsignatura.innerHTML += `<option value="${asignatura}">${asignatura}</option>`;
+      });
+    }
+
+    // Función para aplicar filtros
+    function aplicarFiltros() {
+      const filtroSemestre = document.getElementById('filtroSemestre').value;
+      const filtroAsignatura = document.getElementById('filtroAsignatura').value;
+      const busqueda = document.getElementById('buscarEstudiante').value.toLowerCase();
+
+      datosFiltrados = datosNotas.filter(nota => {
+        let coincide = true;
+
+        if (filtroSemestre && nota.asignatura) {
+          coincide = coincide && nota.asignatura.semestre.toString() === filtroSemestre;
+        }
+
+        if (filtroAsignatura && nota.asignatura) {
+          coincide = coincide && nota.asignatura.nombre === filtroAsignatura;
+        }
+
+        if (busqueda && nota.estudiante) {
+          coincide = coincide && nota.estudiante.nombre.toLowerCase().includes(busqueda);
+        }
+
+        return coincide;
+      });
+
+      paginaActual = 1;
+      actualizarEstadisticas();
+      mostrarNotas();
+    }
+
+    // Función para actualizar estadísticas
+    function actualizarEstadisticas() {
+      const total = datosFiltrados.length;
+      const excelentes = datosFiltrados.filter(nota => nota.notaFinal >= 4.0).length;
+      const altos = datosFiltrados.filter(nota => nota.notaFinal >= 3.0 && nota.notaFinal < 4.0).length;
+      const bajos = datosFiltrados.filter(nota => nota.notaFinal < 3.0).length;
+
+      document.getElementById('totalEstudiantes').textContent = total;
+      document.getElementById('estudiantesExcelente').textContent = excelentes;
+      document.getElementById('estudiantesAlto').textContent = altos;
+      document.getElementById('estudiantesBajo').textContent = bajos;
+    }
+
+    // Función para mostrar notas en la tabla
+    function mostrarNotas() {
+      const tbody = document.getElementById('tablaNotas');
+      
+      if (datosFiltrados.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="alert-empty">
+              <i class="fas fa-inbox fa-3x mb-3 text-muted"></i>
+              <br>No se encontraron registros de notas
+            </td>
+          </tr>
+        `;
+        document.getElementById('infoRegistros').textContent = 'No hay registros para mostrar';
+        document.getElementById('paginacion').innerHTML = '';
+        return;
+      }
+
+      const inicio = (paginaActual - 1) * registrosPorPagina;
+      const fin = Math.min(inicio + registrosPorPagina, datosFiltrados.length);
+      const notasAPaginar = datosFiltrados.slice(inicio, fin);
+
+      tbody.innerHTML = notasAPaginar.map((nota, index) => {
+        const iniciales = nota.estudiante ? obtenerIniciales(nota.estudiante.nombre) : 'N/A';
+        const colorAvatar = obtenerColorAvatar(inicio + index);
+        const claseNota = obtenerClaseNota(nota.notaFinal);
+        const claseEstado = obtenerClaseEstado(nota.notaFinal);
+        const clasificacion = clasificarNota(nota.notaFinal);
+        
+        return `
+          <tr>
+            <td class="px-4 py-3">
+              <div class="d-flex align-items-center">
+                <div class="student-avatar me-3" style="background-color: ${colorAvatar}">
+                  <span>${iniciales}</span>
+                </div>
+                <div>
+                  <div class="fw-medium">${nota.estudiante ? nota.estudiante.nombre : 'N/A'}</div>
+                  <small class="text-muted">Doc: ${nota.estudiante ? nota.estudiante.numeroDocumento : 'N/A'}</small>
+                </div>
+              </div>
+            </td>
+            <td class="px-4 py-3">
+              <div>
+                <div class="fw-medium">${nota.asignatura ? nota.asignatura.nombre : 'N/A'}</div>
+                <small class="text-muted">Semestre ${nota.asignatura ? nota.asignatura.semestre : 'N/A'}</small>
+              </div>
+            </td>
+            <td class="px-4 py-3">
+              <span class="fs-5 fw-bold ${claseNota}">${nota.notaFinal.toFixed(1)}</span>
+            </td>
+            <td class="px-4 py-3">
+              <span class="estado-badge ${claseEstado}">${clasificacion}</span>
+            </td>
+            <td class="px-4 py-3">
+              <small class="text-muted">
+                ${nota.fechaRegistro ? new Date(nota.fechaRegistro).toLocaleDateString('es-ES') : 'N/A'}
+              </small>
+            </td>
+            <td class="px-4 py-3">
+              <button class="btn btn-sm btn-outline-primary" onclick="verDetalle('${nota.id}')">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-secondary ms-1" onclick="editarNota('${nota.id}')">
+                <i class="fas fa-edit"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Actualizar información de registros
+      document.getElementById('infoRegistros').textContent = 
+        `Mostrando ${inicio + 1} a ${fin} de ${datosFiltrados.length} registros`;
+
+      // Generar paginación
+      generarPaginacion();
+    }
+
+    // Función para generar paginación
+    function generarPaginacion() {
+      const totalPaginas = Math.ceil(datosFiltrados.length / registrosPorPagina);
+      const paginacion = document.getElementById('paginacion');
+
+      if (totalPaginas <= 1) {
+        paginacion.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+
+      // Botón anterior
+      html += `
+        <li class="page-item ${paginaActual === 1 ? 'disabled' : ''}">
+          <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual - 1})">Anterior</a>
+        </li>
+      `;
+
+      // Páginas
+      for (let i = 1; i <= Math.min(totalPaginas, 5); i++) {
+        html += `
+          <li class="page-item ${i === paginaActual ? 'active' : ''}">
+            <a class="page-link" href="#" onclick="cambiarPagina(${i})">${i}</a>
+          </li>
+        `;
+      }
+
+      // Botón siguiente
+      html += `
+        <li class="page-item ${paginaActual === totalPaginas ? 'disabled' : ''}">
+          <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual + 1})">Siguiente</a>
+        </li>
+      `;
+
+      paginacion.innerHTML = html;
+    }
+
+    // Función para cambiar página
+    function cambiarPagina(nuevaPagina) {
+      const totalPaginas = Math.ceil(datosFiltrados.length / registrosPorPagina);
+      if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+        paginaActual = nuevaPagina;
+        mostrarNotas();
+      }
+    }
+
+    // Función para ver detalle de nota
+    function verDetalle(notaId) {
+      const nota = datosNotas.find(n => n.id === notaId);
+      if (nota) {
+        document.getElementById('modalNotaTitulo').textContent = 'Detalle de Nota';
+        document.getElementById('notaId').value = nota.id;
+        document.getElementById('estudianteNombre').value = nota.estudiante ? nota.estudiante.nombre : 'N/A';
+        document.getElementById('asignaturaNombre').value = nota.asignatura ? nota.asignatura.nombre : 'N/A';
+        document.getElementById('notaFinal').value = nota.notaFinal;
+        document.getElementById('observaciones').value = nota.observaciones || '';
+        
+        // Deshabilitar campos para solo lectura
+        document.getElementById('notaFinal').disabled = true;
+        document.getElementById('observaciones').disabled = true;
+        
+        new bootstrap.Modal(document.getElementById('modalNota')).show();
+      }
+    }
+
+    // Función para editar nota
+    function editarNota(notaId) {
+      const nota = datosNotas.find(n => n.id === notaId);
+      if (nota) {
+        document.getElementById('modalNotaTitulo').textContent = 'Editar Nota';
+        document.getElementById('notaId').value = nota.id;
+        document.getElementById('estudianteNombre').value = nota.estudiante ? nota.estudiante.nombre : 'N/A';
+        document.getElementById('asignaturaNombre').value = nota.asignatura ? nota.asignatura.nombre : 'N/A';
+        document.getElementById('notaFinal').value = nota.notaFinal;
+        document.getElementById('observaciones').value = nota.observaciones || '';
+        
+        // Habilitar campos para edición
+        document.getElementById('notaFinal').disabled = false;
+        document.getElementById('observaciones').disabled = false;
+        
+        new bootstrap.Modal(document.getElementById('modalNota')).show();
+      }
+    }
+
+    // Función para guardar nota
+    async function guardarNota() {
+      const notaId = document.getElementById('notaId').value;
+      const notaFinal = parseFloat(document.getElementById('notaFinal').value);
+      const observaciones = document.getElementById('observaciones').value;
+
+      if (notaFinal < 0 || notaFinal > 5) {
+        alert('La nota debe estar entre 0 y 5');
+        return;
+      }
+
+      try {
+        const response = await fetch(`api/notas`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            notaId,
+            notaFinal,
+            observaciones
+          })
+        });
+
+        if (!response.ok) throw new Error('Error al actualizar nota');
+
+        const resultado = await response.json();
+        alert(resultado.mensaje || 'Nota actualizada correctamente');
+        
+        // Cerrar modal y recargar datos
+        bootstrap.Modal.getInstance(document.getElementById('modalNota')).hide();
+        cargarNotas();
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al guardar la nota');
+      }
+    }
+
+    // Función para mostrar errores
+    function mostrarError(mensaje) {
+      const tbody = document.getElementById('tablaNotas');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="alert-empty text-danger">
+            <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+            <br>${mensaje}
+          </td>
+        </tr>
+      `;
+      
+      // Resetear estadísticas
+      document.getElementById('totalEstudiantes').textContent = '0';
+      document.getElementById('estudiantesExcelente').textContent = '0';
+      document.getElementById('estudiantesAlto').textContent = '0';
+      document.getElementById('estudiantesBajo').textContent = '0';
+    }
+
+    // Inicializar aplicación
+    document.addEventListener('DOMContentLoaded', function() {
+      cargarNotas();
+    });
+  </script>
+</body>
+</html>
